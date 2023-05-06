@@ -47,7 +47,9 @@ const RestoSchema = new mongoose.Schema({
   },
 
   price_average: { type: String },
+  followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 });
+
 //const Item = mongoose.model("Item", itemSchema);
 const Resto = mongoose.model("Resto", RestoSchema);
 
