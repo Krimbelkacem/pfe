@@ -45,20 +45,16 @@ const handleaddcategory = asyncHandler(async function (req, res, next) {
     console.log("no data");
   }
   if (req.body) {
-    const cat = new Category({ name: catname });
+    const cat = { name: catname };
     console.log(cat);
-    await cat.save();
+
     console.log("ok");
     try {
-      const savecat = cat;
-      console.log("22");
-      if (savecat) {
-        const update = await Resto.findByIdAndUpdate(
-          restoId,
-          { $push: { "menu.categories": cat } },
-          { new: true }
-        );
-      }
+      const update = await Resto.findByIdAndUpdate(
+        restoId,
+        { $push: { "menu.categories": cat } },
+        { new: true }
+      );
 
       console.log(cat);
 
@@ -90,6 +86,53 @@ const handlereadcategory = asyncHandler(async function (req, res, next) {
     res.status(500).send(error);
   }
 });
+const addmenuitem = async (req, res) => {
+  const { name, price, description } = req.body;
+  const imagefile = req.file;
+  const image = req.file.filename;
+  console.log(req.file.path);
+  console.log(imagefile);
+  const { id } = req.query;
+  const idC = req.query.idC;
+  console.log("id resto :" + id);
+  console.log("id category: " + idC);
+  try {
+    const resto = await Resto.findById(id);
+    if (!resto) {
+      console.log("resto not founnd");
+      return res.status(404).json({ message: "Restaurant not found" });
+    }
+    /*
+    const categoryIndex = resto.menu.categories.findIndex(
+      (category) => console.log(category._id),
+      category._id === idC
+    );
+    
+    if (categoryIndex === -1) {
+      return res.status(400).json({ message: "Category not found" });
+    }
+
+    const newItem = { name, price, description };
+    resto.menu.categories[categoryIndex].items.push(newItem);
+
+    await resto.save();
+    return res
+      .status(201)
+      .json({ message: "Item added to menu", item: newItem });*/
+    const newItem = { name, image, price, description };
+    const updatedResto = await Resto.findOneAndUpdate(
+      { _id: id, "menu.categories._id": idC },
+      { $push: { "menu.categories.$.items": newItem } },
+      { new: true }
+    );
+    console.log("ok");
+    return res
+      .status(201)
+      .json({ message: "Item added to menu", item: newItem });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
 const handleadditem = asyncHandler(async function (req, res, next) {
   if (!req.query || !req.body) {
     res.status(500).send("no id send");
@@ -104,11 +147,11 @@ const handleadditem = asyncHandler(async function (req, res, next) {
   if(req.body.price){}
   if(req.body.description){}
   */
+  const category = req.body.category;
   const newItem = {
     name: req.body.name,
     description: req.body.description,
     price: req.body.price,
-    category: req.body.category,
   };
   console.log(req.body.category);
   try {
@@ -124,6 +167,7 @@ const handleadditem = asyncHandler(async function (req, res, next) {
 });
 
 module.exports = {
+  addmenuitem,
   handleaddmenu,
   handleaddcategory,
   handlereadcategory,

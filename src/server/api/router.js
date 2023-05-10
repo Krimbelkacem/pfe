@@ -16,18 +16,20 @@ const {
   handlefindresto,
   handlenewresto,
   handleupdateresto,
+  handlegetresto,
 } = require("../controller/restoController");
 const {
   handleaddmenu,
   handleaddcategory,
   handlereadcategory,
   handleadditem,
+  addmenuitem,
 } = require("../controller/menuController");
 const app = express();
 const fs = require("fs");
 const multer = require("multer");
 app.post("/upload", upload.single("image"), handlenewresto);
-
+app.get("/ProfilResto", handlegetresto);
 app.post("/searchResto", handlefindresto);
 app.post("/signup", upload.single("image"), handleNewUser);
 app.post("/login", authUser);
@@ -42,7 +44,7 @@ app.post("/addmenu", handleaddmenu);
 app.post("/addcategory", handleaddcategory);
 app.get("/category", handlereadcategory);
 
-app.post("/additem", upload.none(), handleadditem);
+app.post("/additem", upload.single("image"), addmenuitem);
 /*
 app.post("/addResto", upload.single("avatar"), async (req, response) => {
   const resto = new Resto(req.body);

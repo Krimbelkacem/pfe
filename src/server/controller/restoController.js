@@ -102,6 +102,17 @@ const handlefindresto = asyncHandler(async (req, response) => {
     response.status(500).send(error);
   }
 });
+const handlegetresto = asyncHandler(async (req, response) => {
+  const id = req.query.id;
+
+  const restos = await Resto.findById(id);
+
+  try {
+    response.json(restos);
+  } catch (error) {
+    response.status(500).send(error);
+  }
+});
 
 const handledeleteteresto = asyncHandler(async (req, res) => {
   console.log("id:" + req.query.id);
@@ -129,9 +140,45 @@ const handledeleteteresto = asyncHandler(async (req, res) => {
     console.error(`Error updating resto ${restoId}: ${err}`);
   }
 });
+
+const follow = asyncHandler(async (req, res) => {
+  const idU = req.query.id;
+  const idR = req.body.id;
+  try {
+    // Find the restaurant by ID
+    const restaurant = await Resto.findById(id);
+
+    if (!restaurant) {
+      return res.status(404).json({ message: "Restaurant not found" });
+    }
+
+    // Find the user by ID
+    const user = await User.findById(followerId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Add the user to the restaurant's followers array
+    restaurant.followers.push(idU);
+
+    // Save the restaurant
+    await restaurant.save();
+    user.followings.push(idR);
+    await user.save();
+
+    res.status(200).json({ message: "Follower added successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 module.exports = {
+  follow,
   handlefindresto,
   handlenewresto,
   handledeleteteresto,
   handleupdateresto,
+  handlegetresto,
 };

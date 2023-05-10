@@ -5,13 +5,13 @@ const categorySchema = new mongoose.Schema({
 });
 
 const itemSchema = new mongoose.Schema({
+  image: { type: String },
   name: { type: String, required: true },
   price: { type: Number, required: true },
   description: {
     type: String,
     required: true,
   },
-  category: { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
 });
 
 const RestoSchema = new mongoose.Schema({
@@ -30,8 +30,9 @@ const RestoSchema = new mongoose.Schema({
   },
   menu: {
     name: { type: String },
-    categories: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
-    items: [itemSchema],
+    categories: [
+      { name: { type: String, required: true }, items: [itemSchema] },
+    ],
   },
 
   description: {
@@ -48,6 +49,15 @@ const RestoSchema = new mongoose.Schema({
 
   price_average: { type: String },
   followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  openingHours: {
+    monday: String,
+    tuesday: String,
+    wednesday: String,
+    thursday: String,
+    friday: String,
+    saturday: String,
+    sunday: String,
+  },
 });
 
 //const Item = mongoose.model("Item", itemSchema);
