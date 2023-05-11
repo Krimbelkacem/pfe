@@ -23,21 +23,18 @@ const RestoSchema = new mongoose.Schema({
     type: String,
     default: "src/server/uploads/default.png",
   },
-  address: { type: String, required: true },
+  address: { type: String },
   owner: {
     type: mongoose.SchemaTypes.ObjectID,
     ref: "User",
   },
   menu: {
     name: { type: String },
-    categories: [
-      { name: { type: String, required: true }, items: [itemSchema] },
-    ],
+    categories: [{ name: { type: String }, items: [itemSchema] }],
   },
 
   description: {
     type: String,
-    required: true,
   },
   photos: [{ type: String }],
   cuisines: [{ type: String }],
@@ -49,20 +46,11 @@ const RestoSchema = new mongoose.Schema({
 
   price_average: { type: String },
   followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-  openingHours: {
-    monday: String,
-    tuesday: String,
-    wednesday: String,
-    thursday: String,
-    friday: String,
-    saturday: String,
-    sunday: String,
-  },
 });
 
 //const Item = mongoose.model("Item", itemSchema);
 const Resto = mongoose.model("Resto", RestoSchema);
 
-const Category = mongoose.model("Category", categorySchema);
+//const Category = mongoose.model("Category", categorySchema);
 
-module.exports = { Resto, Category };
+module.exports = Resto;

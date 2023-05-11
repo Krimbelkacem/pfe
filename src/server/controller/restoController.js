@@ -1,7 +1,7 @@
 const { default: mongoose } = require("mongoose");
 
 const User = require("../db/Schema/User");
-const { Resto, Category } = require("../db/Schema/Restaurant");
+const Resto = require("../db/Schema/Restaurant");
 const session = require("express-session");
 const generateToken = require("../config/generateToken");
 const asyncHandler = require("express-async-handler");
@@ -144,30 +144,44 @@ const handledeleteteresto = asyncHandler(async (req, res) => {
 const follow = asyncHandler(async (req, res) => {
   const idU = req.query.idU;
   const idR = req.query.idR;
+  console.log(idR);
+  console.log(idU);
   try {
     // Find the restaurant by ID
-    const restaurant = await Resto.findById(id);
+    const restaurant = await Resto.findById(idR);
 
     if (!restaurant) {
       return res.status(404).json({ message: "Restaurant not found" });
     }
 
     // Find the user by ID
-    const user = await User.findById(followerId);
+    const user = await User.findById(idU);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-
+    // Check if the user is already following the restaurant
+    if (restaurant.followers.includes(idU)) {
+      return res
+        .status(400)
+        .json({ message: "User is already following the restaurant" });
+    }
     // Add the user to the restaurant's followers array
     restaurant.followers.push(idU);
+    console.log(restaurant.followers);
 
     // Save the restaurant
     await restaurant.save();
+
+    if (user.followings.includes(idR)) {
+      return res
+        .status(400)
+        .json({ message: "Restaurant is already in the user's followings" });
+    }
     user.followings.push(idR);
     await user.save();
-
-    res.status(200).json({ message: "Follower added successfully" });
+    console.log(user.followings);
+    return res.status(200).json({ message: "Follower added successfully" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });

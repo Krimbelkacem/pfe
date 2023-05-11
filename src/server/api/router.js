@@ -13,6 +13,7 @@ const {
   handledeleteteuser,
 } = require("../controller/userController");
 const {
+  follow,
   handlefindresto,
   handlenewresto,
   handleupdateresto,
@@ -31,6 +32,7 @@ const multer = require("multer");
 app.post("/upload", upload.single("image"), handlenewresto);
 app.get("/ProfilResto", handlegetresto);
 app.post("/searchResto", handlefindresto);
+app.post("/addfollower", follow);
 app.post("/signup", upload.single("image"), handleNewUser);
 app.post("/login", authUser);
 
