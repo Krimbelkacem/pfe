@@ -142,8 +142,8 @@ const handledeleteteresto = asyncHandler(async (req, res) => {
 });
 
 const follow = asyncHandler(async (req, res) => {
-  const idU = req.query.id;
-  const idR = req.body.id;
+  const idU = req.query.idU;
+  const idR = req.query.idR;
   try {
     // Find the restaurant by ID
     const restaurant = await Resto.findById(id);
