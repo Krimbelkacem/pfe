@@ -1,9 +1,5 @@
 const mongoose = require("mongoose");
 
-const categorySchema = new mongoose.Schema({
-  name: { type: String, required: true },
-});
-
 const itemSchema = new mongoose.Schema({
   image: { type: String },
   name: { type: String, required: true },
@@ -21,7 +17,7 @@ const RestoSchema = new mongoose.Schema({
   },
   avatar: {
     type: String,
-    default: "src/server/uploads/default.png",
+    default: "default.png",
   },
   address: { type: String },
   owner: {
@@ -46,11 +42,9 @@ const RestoSchema = new mongoose.Schema({
 
   price_average: { type: String },
   followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  reservations: [{ type: mongoose.Schema.Types.ObjectId, ref: "Reserve" }],
 });
 
-//const Item = mongoose.model("Item", itemSchema);
 const Resto = mongoose.model("Resto", RestoSchema);
-
-//const Category = mongoose.model("Category", categorySchema);
 
 module.exports = Resto;

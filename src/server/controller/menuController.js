@@ -1,5 +1,5 @@
 const User = require("../db/Schema/User");
-const { Resto, Category } = require("../db/Schema/Restaurant");
+const Resto = require("../db/Schema/Restaurant");
 const session = require("express-session");
 const generateToken = require("../config/generateToken");
 const asyncHandler = require("express-async-handler");
@@ -32,7 +32,7 @@ const handleaddmenu = asyncHandler(async function (req, res, next) {
   }
 });
 
-const handleaddcategory = asyncHandler(async function (req, res, next) {
+/*const handleaddcategory = asyncHandler(async function (req, res, next) {
   console.log("id:" + req.query.id);
   const restoId = req.query.id;
   const catname = req.body.catname;
@@ -63,6 +63,37 @@ const handleaddcategory = asyncHandler(async function (req, res, next) {
       res.status(500).send(error);
     }
   }
+});*/
+const handleaddcategory = asyncHandler(async (req, res) => {
+  const { id: restoId } = req.query;
+  const { catname } = req.body;
+
+  if (!restoId) {
+    return res.status(400).send("Missing 'id' parameter.");
+  }
+
+  if (!catname) {
+    return res.status(400).send("Missing 'catname' field.");
+  }
+
+  try {
+    const update = await Resto.findByIdAndUpdate(
+      restoId,
+      { $push: { "menu.categories": { name: catname } } },
+      { new: true }
+    );
+
+    if (!update) {
+      return res.status(404).send("Restaurant not found.");
+    }
+
+    const newCategory =
+      update.menu.categories[update.menu.categories.length - 1];
+    return res.json(newCategory);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send("Internal server error.");
+  }
 });
 const handlereadcategory = asyncHandler(async function (req, res, next) {
   console.log("id resto:" + req.query.id);
@@ -86,6 +117,32 @@ const handlereadcategory = asyncHandler(async function (req, res, next) {
     res.status(500).send(error);
   }
 });
+
+const deleteCategory = asyncHandler(async (req, res) => {
+  const { id, categoryId } = req.params;
+
+  try {
+    const resto = await Resto.findById(id);
+    if (!resto) {
+      return res.status(404).json({ message: "Resto not found" });
+    }
+
+    const categoryIndex = resto.menu.categories.findIndex(
+      (category) => category._id.toString() === categoryId
+    );
+    if (categoryIndex === -1) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    resto.menu.categories.splice(categoryIndex, 1);
+    await resto.save();
+
+    res.json({ message: "Category deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to delete category" });
+  }
+});
+
 const addmenuitem = async (req, res) => {
   const { name, price, description } = req.body;
   const imagefile = req.file;
@@ -165,11 +222,27 @@ const handleadditem = asyncHandler(async function (req, res, next) {
     res.status(500).send(error);
   }
 });
+const handleRemoveItem = asyncHandler(async function (req, res, next) {
+  const { id, itemId } = req.query;
+
+  try {
+    const update = await Resto.findByIdAndUpdate(
+      id,
+      { $pull: { "menu.items": { _id: itemId } } },
+      { new: true }
+    );
+    res.json(update);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
 
 module.exports = {
   addmenuitem,
   handleaddmenu,
   handleaddcategory,
   handlereadcategory,
+  deleteCategory,
   handleadditem,
+  handleRemoveItem,
 };

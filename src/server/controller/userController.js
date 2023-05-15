@@ -2,6 +2,7 @@ const { default: mongoose } = require("mongoose");
 
 const User = require("../db/Schema/User");
 const Resto = require("../db/Schema/Restaurant");
+const Reserve = require("../db/Schema/Reservation");
 const session = require("express-session");
 const { generateToken, decodeToken } = require("../config/generateToken");
 const asyncHandler = require("express-async-handler");
@@ -24,14 +25,21 @@ const handleNewUser = async (req, res) => {
 
   try {
     //create and store the new user
-    const result = await User.create({
-      username: name,
-      password: passe,
-      email: email,
-      picture: file.path,
-    });
-
-    console.log(result);
+    if (file) {
+      const result = await User.create({
+        username: name,
+        password: passe,
+        email: email,
+        picture: file.filename,
+      });
+    } else {
+      const result = await User.create({
+        username: name,
+        password: passe,
+        email: email,
+      });
+    }
+    console.log("user created");
 
     res.status(201).json({ success: `New user ${name} created!` });
   } catch (err) {
@@ -52,7 +60,7 @@ const authUser = asyncHandler(async (req, res) => {
     console.log("ok");
     res.json({ token, idU });
   } else {
-    res.json("Invalid Email or Password");
+    res.status(400).json("Invalid Email or Password");
     throw new Error("Invalid Email or Password");
   }
 });
@@ -66,13 +74,23 @@ const handlegetuser = asyncHandler(async (req, res) => {
     console.log(decodedToken);
 
     // Find the user with the decoded ID
-    const user = await User.findById(decodedToken.id).populate("Restos");
+    const user = await User.findById(decodedToken.id)
+      .populate("Restos")
+      .populate("followings")
+      .populate({
+        path: "reservations",
+        populate: {
+          path: "Resto",
+          select: "name avatar",
+        },
+      })
+      .exec();
 
     // If the user doesn't exist, return an error
     if (!user) {
       return res.status(401).json({ error: "Unauthorized" });
     }
-
+    console.log(user.reservations.time);
     // Return the user object as a response
     res.json(user);
     console.log(user);

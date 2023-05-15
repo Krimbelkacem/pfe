@@ -13,6 +13,7 @@ const {
   handledeleteteuser,
 } = require("../controller/userController");
 const {
+  unfollow,
   follow,
   handlefindresto,
   handlenewresto,
@@ -26,13 +27,25 @@ const {
   handleadditem,
   addmenuitem,
 } = require("../controller/menuController");
+const {
+  newReservation,
+  removeReservation,
+  acceptReservation,
+  rejectReservation,
+} = require("../controller/reserveController");
 const app = express();
 const fs = require("fs");
 const multer = require("multer");
 app.post("/upload", upload.single("image"), handlenewresto);
 app.get("/ProfilResto", handlegetresto);
 app.post("/searchResto", handlefindresto);
+////////////////////////////////////////
+app.post("/newReservation", newReservation);
+app.put("/acceptReservation", acceptReservation);
+app.put("/rejectReservation", rejectReservation);
+/////////////////
 app.post("/addfollower", follow);
+app.post("/unfollow", unfollow);
 app.post("/signup", upload.single("image"), handleNewUser);
 app.post("/login", authUser);
 
