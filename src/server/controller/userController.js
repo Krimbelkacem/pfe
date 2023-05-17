@@ -47,6 +47,15 @@ const handleNewUser = async (req, res) => {
   }
 };
 
+function isAdmin(req, res, next) {
+  if (req.user.isAdmin) {
+    // User is authenticated and authorized as admin
+    return next();
+  }
+
+  // User is not authenticated or not authorized as admin
+  res.status(403).json({ message: "Access denied." });
+}
 const authUser = asyncHandler(async (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
