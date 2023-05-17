@@ -15,6 +15,10 @@ const userSchema = new Schema(
 
       default: "default.png",
     },
+    isAdmin: {
+      type: Boolean,
+      default: false,
+    },
 
     email: {
       type: String,
