@@ -12,6 +12,7 @@ const {
   handleupdateuser,
   authUser,
   handledeleteteuser,
+  authAdmin,
 } = require("../controller/userController");
 const {
   unfollow,
@@ -42,6 +43,9 @@ app.get("/ProfilResto", handlegetresto);
 app.post("/searchResto", handlefindresto);
 app.post("/search", handleSearch);
 ////////////////////////////////////////
+
+router.get("/admin-page", authAdmin);
+//////////////////////
 app.post("/newReservation", newReservation);
 app.put("/acceptReservation", acceptReservation);
 app.put("/rejectReservation", rejectReservation);

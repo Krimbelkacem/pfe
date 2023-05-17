@@ -47,14 +47,20 @@ const handleNewUser = async (req, res) => {
   }
 };
 
-function isAdmin(req, res, next) {
-  if (req.user.isAdmin) {
-    // User is authenticated and authorized as admin
-    return next();
+async function authAdmin(req, res, next) {
+  const email = req.body.email;
+  const password = req.body.password;
+  if (!password || !email)
+    res.status(400).json({ message: "Username and password are required." });
+  const user = await User.findOne({ email });
+  if (user && user.isAdmin && (await user.matchPassword(password))) {
+    const token = generateToken(user._id);
+    const idU = user._id;
+    console.log("ok");
+    res.json({ token, idU });
+  } else {
+    res.status(403).json({ message: "Access denied." });
   }
-
-  // User is not authenticated or not authorized as admin
-  res.status(403).json({ message: "Access denied." });
 }
 const authUser = asyncHandler(async (req, res) => {
   const email = req.body.email;
@@ -175,4 +181,5 @@ module.exports = {
   handlegetuser,
   handleupdateuser,
   handledeleteteuser,
+  authAdmin,
 };
