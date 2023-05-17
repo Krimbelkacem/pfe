@@ -4,6 +4,7 @@ const User = require("../db/Schema/User");
 const upload = require("../middleware/upload");
 const jwt = require("jsonwebtoken");
 const secretKey = "khlifa";
+const handleSearch = require("../controller/moteur");
 
 const {
   handleNewUser,
@@ -39,6 +40,7 @@ const multer = require("multer");
 app.post("/upload", upload.single("image"), handlenewresto);
 app.get("/ProfilResto", handlegetresto);
 app.post("/searchResto", handlefindresto);
+app.post("/search", handleSearch);
 ////////////////////////////////////////
 app.post("/newReservation", newReservation);
 app.put("/acceptReservation", acceptReservation);
@@ -60,6 +62,7 @@ app.post("/addcategory", handleaddcategory);
 app.get("/category", handlereadcategory);
 
 app.post("/additem", upload.single("image"), addmenuitem);
+
 /*
 app.post("/addResto", upload.single("avatar"), async (req, response) => {
   const resto = new Resto(req.body);

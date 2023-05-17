@@ -206,7 +206,8 @@ const follow = asyncHandler(async (req, res) => {
 const unfollow = asyncHandler(async (req, res) => {
   const idU = req.query.idU;
   const idR = req.query.idR;
-
+  console.log(idU);
+  console.log(idR);
   try {
     // Find the restaurant by ID
     const restaurant = await Resto.findById(idR);
