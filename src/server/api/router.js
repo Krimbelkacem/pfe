@@ -16,12 +16,14 @@ const {
   getAllUsers,
 } = require("../controller/userController");
 const {
+  topRestos,
   unfollow,
   follow,
   handlefindresto,
   handlenewresto,
   handleupdateresto,
   handlegetresto,
+  getAllRestos,
 } = require("../controller/restoController");
 const {
   handleaddmenu,
@@ -45,7 +47,7 @@ app.post("/searchResto", handlefindresto);
 app.post("/search", handleSearch);
 ////////////////////////////////////////
 
-router.get("/admin-page", authAdmin);
+app.post("/admin-page", authAdmin);
 //////////////////////
 app.post("/newReservation", newReservation);
 app.put("/acceptReservation", acceptReservation);
