@@ -250,8 +250,43 @@ const unfollow = asyncHandler(async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+async function topRestos(req, res) {
+  // Find the top 10 restaurants with the most followers
+  const topRestosQuery = Resto.aggregate([
+    { $match: { followers: { $exists: true } } }, // Match restaurants that have the 'followers' field
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        avatar: 1,
+        followerCount: { $size: "$followers" },
+      },
+    }, // Project the restaurant ID, name, avatar, and follower count
+    { $sort: { followerCount: -1 } }, // Sort by follower count in descending order
+    { $limit: 10 }, // Limit the result to 10 restaurants
+  ]);
 
+  // Execute the query
+  topRestosQuery.exec((err, topRestos) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: "An error occurred" });
+      return;
+    }
+
+    res.json(topRestos);
+  });
+}
+
+const getAllRestos = async (req, res) => {
+  console.log("laarbi");
+  const users = await User.find().select();
+
+  res.status(200).json(users);
+};
 module.exports = {
+  getAllRestos,
+  topRestos,
   unfollow,
   follow,
   handlefindresto,

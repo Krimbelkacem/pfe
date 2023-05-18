@@ -21,6 +21,7 @@ const {
   handlenewresto,
   handleupdateresto,
   handlegetresto,
+  topRestos,
 } = require("../controller/restoController");
 const {
   handleaddmenu,
@@ -44,7 +45,7 @@ app.post("/searchResto", handlefindresto);
 app.post("/search", handleSearch);
 ////////////////////////////////////////
 
-router.get("/admin-page", authAdmin);
+app.get("/admin-page", authAdmin);
 //////////////////////
 app.post("/newReservation", newReservation);
 app.put("/acceptReservation", acceptReservation);
@@ -66,6 +67,8 @@ app.post("/addcategory", handleaddcategory);
 app.get("/category", handlereadcategory);
 
 app.post("/additem", upload.single("image"), addmenuitem);
+
+app.get("/top-restaurants", topRestos);
 
 /*
 app.post("/addResto", upload.single("avatar"), async (req, response) => {
