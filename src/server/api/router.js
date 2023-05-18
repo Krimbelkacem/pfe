@@ -13,6 +13,7 @@ const {
   authUser,
   handledeleteteuser,
   authAdmin,
+  getAllUsers,
 } = require("../controller/userController");
 const {
   unfollow,
@@ -21,6 +22,8 @@ const {
   handlenewresto,
   handleupdateresto,
   handlegetresto,
+  getAllRestos,
+  
 } = require("../controller/restoController");
 const {
   handleaddmenu,
@@ -44,7 +47,7 @@ app.post("/searchResto", handlefindresto);
 app.post("/search", handleSearch);
 ////////////////////////////////////////
 
-router.get("/admin-page", authAdmin);
+app.post("/admin-page", authAdmin);
 //////////////////////
 app.post("/newReservation", newReservation);
 app.put("/acceptReservation", acceptReservation);
@@ -66,6 +69,14 @@ app.post("/addcategory", handleaddcategory);
 app.get("/category", handlereadcategory);
 
 app.post("/additem", upload.single("image"), addmenuitem);
+
+
+//recuperer les utilisateurs pour l'admin
+app.get("/admin_users", getAllUsers);
+
+
+//recuperer les restaurant pour l'admin
+app.get("/admin_resto", getAllRestos);
 
 /*
 app.post("/addResto", upload.single("avatar"), async (req, response) => {

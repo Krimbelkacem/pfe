@@ -6,6 +6,11 @@ const app = express();
 var cookieParser = require("cookie-parser");
 
 app.use(cookieParser());
+const cors = require('cors');
+
+
+
+app.use(cors());
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -25,7 +30,7 @@ app.use(express.static("public"));
 app.use(express.json());
 mongoose.set("strictQuery", false);
 
-const mongoDB = "mongodb://localhost:27017/ELMida";
+const mongoDB = "mongodb://0.0.0.0:27017/ELMida";
 
 main().catch((err) => console.log(err));
 async function main() {

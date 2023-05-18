@@ -249,7 +249,14 @@ const unfollow = asyncHandler(async (req, res) => {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
-});
+}); 
+
+const getAllRestos = async (req, res) => {
+  console.log("laarbi")
+  const users = await User.find().select()
+  
+  res.status(200).json(users);
+}
 
 module.exports = {
   unfollow,
@@ -259,4 +266,5 @@ module.exports = {
   handledeleteteresto,
   handleupdateresto,
   handlegetresto,
+  getAllRestos,
 };
