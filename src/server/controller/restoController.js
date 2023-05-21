@@ -7,7 +7,8 @@ const generateToken = require("../config/generateToken");
 const asyncHandler = require("express-async-handler");
 const handlenewresto = asyncHandler(async function (req, res, next) {
   console.log("id:" + req.query.id);
-  const userId = req.query.id;
+  const userId = req.query.id.toString();
+
   const file = req.file;
   if (!file) {
     const error = new Error("Please upload a file");
@@ -15,14 +16,20 @@ const handlenewresto = asyncHandler(async function (req, res, next) {
     return next(error);
   }
 
-  const resto = new Resto(req.body);
-
-  resto.avatar = req.file.path;
+  const resto = new Resto();
+console.log(req.body.longitude)
+console.log(req.body.latitude)
+resto.name=req.body.name;
+resto. address=req.body.address;
+  resto.avatar = req.file.filename;
   resto.owner = userId;
-  console.log(resto);
+  resto.latitude=parseFloat(req.body.latitude)
+  resto.longitude=parseFloat(req.body.longitude)
+
 
   try {
     await resto.save();
+    console.log('ok')
     const newRestoId = resto._id;
     User.findByIdAndUpdate(
       userId,
@@ -278,13 +285,221 @@ async function topRestos(req, res) {
   });
 }
 
-const getAllRestos = async (req, res) => {
-  console.log("laarbi");
-  const users = await User.find().select();
 
-  res.status(200).json(users);
+const recentsRestos = asyncHandler(async  (req, res) => {
+  try {
+    const recentRestaurants = await Resto.find()
+      .sort({ _id: -1 }) // Sort by descending order of _id (assumes _id is an auto-generated timestamp)
+      .limit(10); // Limit the result to 10 restaurants
+
+    res.json(recentRestaurants);
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+const randomCuisines=asyncHandler(async (req, res) => {
+  try {
+    const cuisines = await Resto.aggregate([
+      { $unwind: '$cuisines' }, // Unwind the cuisines array
+      { $sample: { size: 10 } }, // Randomly sample 10 documents
+    ]);
+
+    res.json(cuisines.map((item) => item.cuisines));
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error' });
+  }
+})
+
+const getAllRestos = async (req, res) => {
+ 
+  const restos = await Resto.find();
+
+  res.status(200).json(restos);
 };
+
+
+
+// Add phone number to a restaurant
+const addPhone = async (req, res) => {
+  const { restoId, phone } = req.body;
+
+  try {
+    const resto = await Resto.findById(restoId);
+    if (!resto) {
+      return res.status(404).json({ message: 'Restaurant not found' });
+    }
+
+    resto.phone = phone;
+    await resto.save();
+
+    res.status(200).json({ message: 'Phone number added successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Delete phone number from a restaurant
+const deletePhone = async (req, res) => {
+  const { restoId } = req.body;
+
+  try {
+    const resto = await Resto.findById(restoId);
+    if (!resto) {
+      return res.status(404).json({ message: 'Restaurant not found' });
+    }
+
+    resto.phone = undefined;
+    await resto.save();
+
+    res.status(200).json({ message: 'Phone number deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Add cuisine to a restaurant
+const addCuisine = async (req, res) => {
+  const { restoId, image, name } = req.body;
+
+  try {
+    const resto = await Resto.findById(restoId);
+    if (!resto) {
+      return res.status(404).json({ message: 'Restaurant not found' });
+    }
+
+    resto.cuisines.push({ image, name });
+    await resto.save();
+
+    res.status(200).json({ message: 'Cuisine added successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Delete cuisine from a restaurant
+const deleteCuisine = async (req, res) => {
+  const { restoId, cuisineId } = req.body;
+
+  try {
+    const resto = await Resto.findById(restoId);
+    if (!resto) {
+      return res.status(404).json({ message: 'Restaurant not found' });
+    }
+
+    const cuisineIndex = resto.cuisines.findIndex(cuisine => cuisine._id.toString() === cuisineId);
+    if (cuisineIndex === -1) {
+      return res.status(404).json({ message: 'Cuisine not found' });
+    }
+
+    resto.cuisines.splice(cuisineIndex, 1);
+    await resto.save();
+
+    res.status(200).json({ message: 'Cuisine deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Add description to a restaurant
+const addDescription = async (req, res) => {
+  const { restoId, description } = req.body;
+
+  try {
+    const resto = await Resto.findById(restoId);
+    if (!resto) {
+      return res.status(404).json({ message: 'Restaurant not found' });
+    }
+
+    resto.description = description;
+    await resto.save();
+
+    res.status(200).json({ message: 'Description added successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+// Delete description from a restaurant
+const deleteDescription = async (req, res) => {
+  const { restoId } = req.body;
+
+  try {
+    const resto = await Resto.findById(restoId);
+    if (!resto) {
+      return res.status(404).json({ message: 'Restaurant not found' });
+    }
+
+    resto.description = undefined;
+    await resto.save();
+
+    res.status(200).json({ message: 'Description deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+// ...
+
+// Delete a category from a restaurant's menu
+const deleteCategory = async (req, res) => {
+  const { restoId, categoryId } = req.body;
+
+  try {
+    const updatedResto = await Resto.findByIdAndUpdate(
+      restoId,
+      { $pull: { 'menu.categories': { _id: categoryId } } },
+      { new: true }
+    );
+
+    if (!updatedResto) {
+      return res.status(404).json({ message: 'Restaurant not found' });
+    }
+
+    res.status(200).json({ message: 'Category deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Delete an item from a category in a restaurant's menu
+const deleteItem = async (req, res) => {
+  const { restoId, categoryId, itemId } = req.body;
+
+  try {
+    const updatedResto = await Resto.findByIdAndUpdate(
+      restoId,
+      { $pull: { 'menu.categories.$[category].items': { _id: itemId } } },
+      { new: true, arrayFilters: [{ 'category._id': categoryId }] }
+    );
+
+    if (!updatedResto) {
+      return res.status(404).json({ message: 'Restaurant not found' });
+    }
+
+    res.status(200).json({ message: 'Item deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
+  deleteCategory ,
+  deleteItem,
+  addPhone,
+  deletePhone,
+  addCuisine,
+  deleteCuisine,
+  addDescription,
+  deleteDescription,
+
+  randomCuisines,
+  recentsRestos,
   getAllRestos,
   topRestos,
   unfollow,

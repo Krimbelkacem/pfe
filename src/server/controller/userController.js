@@ -66,6 +66,7 @@ async function authAdmin(req, res, next) {
 const authUser = asyncHandler(async (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
+  console.log('auth user')
   if (!password || !email)
     res.status(400).json({ message: "Username and password are required." });
   const user = await User.findOne({ email });

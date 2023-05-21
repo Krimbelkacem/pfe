@@ -16,6 +16,17 @@ const {
   getAllUsers,
 } = require("../controller/userController");
 const {
+  deleteCategory ,
+  deleteItem,
+  addPhone,
+  deletePhone,
+  addCuisine,
+  deleteCuisine,
+  addDescription,
+  deleteDescription,
+
+  randomCuisines,
+  recentsRestos,
   topRestos,
   unfollow,
   follow,
@@ -71,12 +82,17 @@ app.get("/category", handlereadcategory);
 app.post("/additem", upload.single("image"), addmenuitem);
 
 app.get("/top-restaurants", topRestos);
-
+app.get("/recents-restaurants", recentsRestos);
 //recuperer les utilisateurs pour l'admin
 app.get("/admin_users", getAllUsers);
 
 //recuperer les restaurant pour l'admin
 app.get("/admin_resto", getAllRestos);
+//recents-restaurants
+app.get('/random-cuisines', randomCuisines);
+
+
+app.post('/send-notification', sendNotification);
 
 /*
 app.post("/addResto", upload.single("avatar"), async (req, response) => {
