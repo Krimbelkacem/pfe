@@ -110,7 +110,7 @@ const handlefindresto = asyncHandler(async (req, response) => {
 });
 const handlegetresto = asyncHandler(async (req, response) => {
   const id = req.query.id;
-
+console.log(id)
   const restos = await Resto.findById(id)
     .populate("followers")
     .populate({
@@ -494,7 +494,6 @@ module.exports = {
   deleteCuisine,
   addDescription,
   deleteDescription,
-
   randomCuisines,
   recentsRestos,
   getAllRestos,
