@@ -35,6 +35,8 @@ const {
   handleupdateresto,
   handlegetresto,
   getAllRestos,
+  getMenuResto,
+  getPhotoResto,
 } = require("../controller/restoController");
 const {
   handleaddmenu,
@@ -101,6 +103,17 @@ app.get("/admin_users", getAllUsers);
 app.get("/admin_resto", getAllRestos);
 //recents-restaurants
 app.get("/random-cuisines", randomCuisines);
+
+
+
+//recuperer les detail resto
+// app.get("/getDetailResto", getDetailResto);
+
+//recuperer le menu des restos
+app.get("/getMenuResto", getMenuResto);
+
+//recuperer les photo resto
+app.get("/getPhotoResto", getPhotoResto),
 
 
 

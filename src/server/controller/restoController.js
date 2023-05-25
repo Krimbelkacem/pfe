@@ -485,6 +485,65 @@ const deleteItem = async (req, res) => {
   }
 };
 
+
+
+
+
+
+
+
+
+
+
+//recuperer le menu des restos
+const getMenuResto = async (req, res) => {
+  const restoId = req.query;
+
+  try {
+    const menuResto = await Resto.findById(restoId);
+
+
+    if (!menuResto) {
+      return res.status(404).json({ message: "Restaurant not found" });
+    }
+
+    // Récupération du menu du restaurant
+    
+    const menu = menuResto.menu;
+
+    res.status(200).json({ menu });
+  } catch (error) {
+    console.error("Error fetching menu:", error);
+    res.status(500).json({ message: "Failed to fetch menu" });
+  }
+};
+
+
+//recuperer les detail resto
+const getPhotoResto = async (req, res) => {
+  const { restoId } = req.params;
+
+  try {
+    // Recherche du restaurant par ID
+    const resto = await Resto.findById(restoId);
+
+    if (!resto) {
+      return res.status(404).json({ message: "Restaurant not found" });
+    }
+
+    // Récupération des photos du restaurant
+    const photos = resto.photos;
+
+    res.status(200).json({ photos });
+  } catch (error) {
+    console.error("Error fetching photos:", error);
+    res.status(500).json({ message: "Failed to fetch photos" });
+  }
+};
+
+  
+
+
 module.exports = {
   deleteCategory,
   deleteItem,
@@ -505,4 +564,6 @@ module.exports = {
   handledeleteteresto,
   handleupdateresto,
   handlegetresto,
+  getMenuResto,
+  getPhotoResto,
 };
