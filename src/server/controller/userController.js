@@ -50,7 +50,7 @@ const handleNewUser = async (req, res) => {
 async function authAdmin(req, res, next) {
   const email = req.body.email;
   const password = req.body.password;
-  console.log(email)
+  console.log(email);
   if (!password || !email)
     res.status(400).json({ message: "Username and password are required." });
   const user = await User.findOne({ email });
@@ -66,7 +66,7 @@ async function authAdmin(req, res, next) {
 const authUser = asyncHandler(async (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  console.log('auth user')
+  console.log("auth user");
   if (!password || !email)
     res.status(400).json({ message: "Username and password are required." });
   const user = await User.findOne({ email });
@@ -178,11 +178,19 @@ const handledeleteteuser = asyncHandler(async (req, res) => {
 });
 
 const getAllUsers = async (req, res) => {
-  console.log("laarbi")
-  const users = await User.find().select()
-  
+  console.log("admin users");
+ // const users = await User.find().select();
+
+ 
+
+
+
+  const users = await User.find({ isAdmin: { $ne: true } });
   res.status(200).json(users);
-}
+};
+
+
+
 
 module.exports = {
   handleNewUser,

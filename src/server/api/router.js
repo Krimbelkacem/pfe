@@ -16,7 +16,7 @@ const {
   getAllUsers,
 } = require("../controller/userController");
 const {
-  deleteCategory ,
+  deleteCategory,
   deleteItem,
   addPhone,
   deletePhone,
@@ -61,8 +61,8 @@ app.post("/search", handleSearch);
 app.post("/admin-page", authAdmin);
 //////////////////////
 app.post("/newReservation", newReservation);
-app.put("/acceptReservation", acceptReservation);
-app.put("/rejectReservation", rejectReservation);
+app.put("/acceptReservation",acceptReservation);
+app.put("/rejectReservation",rejectReservation);
 /////////////////
 app.post("/addfollower", follow);
 app.post("/unfollow", unfollow);
@@ -72,7 +72,7 @@ app.post("/login", authUser);
 app.get("/profile", handlegetuser);
 
 app.post("/updateprofil", handleupdateuser);
-app.post("/deleteprofil", handledeleteteuser);
+app.post("/deleteprofil",handledeleteteuser);
 app.post("/updateresto", upload.single("photos"), handleupdateresto);
 
 app.post("/addmenu", handleaddmenu);
@@ -80,6 +80,17 @@ app.post("/addcategory", handleaddcategory);
 app.get("/category", handlereadcategory);
 
 app.post("/additem", upload.single("image"), addmenuitem);
+/////////////////////////////////////////////////////
+app.post("/ deleteCategory ", deleteCategory);
+app.post("/ deleteItem ", deleteItem);
+app.post("/ addPhone ", addPhone);
+app.post("/ deletePhone ", deletePhone);
+app.post("/  addCuisine ", addCuisine);
+app.post("/ deleteCuisine ", deleteCuisine);
+app.post("/addDescription ", addDescription);
+app.post("/ deleteDescription ", deleteDescription);
+
+//////////////////////////////////////////////////////
 
 app.get("/top-restaurants", topRestos);
 app.get("/recents-restaurants", recentsRestos);
@@ -89,10 +100,9 @@ app.get("/admin_users", getAllUsers);
 //recuperer les restaurant pour l'admin
 app.get("/admin_resto", getAllRestos);
 //recents-restaurants
-app.get('/random-cuisines', randomCuisines);
+app.get("/random-cuisines", randomCuisines);
 
 
-app.post('/send-notification', sendNotification);
 
 /*
 app.post("/addResto", upload.single("avatar"), async (req, response) => {

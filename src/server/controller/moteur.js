@@ -17,7 +17,10 @@ const handleSearch = asyncHandler(async (req, res) => {
         { "menu.categories.name": { $regex: keyword, $options: "i" } }, // Recherche de catégories
         {
           "menu.categories.items.name": { $regex: keyword, $options: "i" },
-        }, // Recherche d'items
+        },  { description: { $regex:  keyword, $options: "i" } }, // Case-insensitive search on the 'description' field
+        {
+          "cuisines.name": { $regex: keyword, $options: "i" },
+        },
       ],
     },
     "_id name menu avatar",
@@ -71,12 +74,33 @@ const handleSearch = asyncHandler(async (req, res) => {
         );
         return items.concat(matchingItems);
       }, []);*/
+
+
+
+     /* const cuisineResults = [];
+
+      cuisineResults = results.reduce((cuisines, result) => {
+        const matchingCuisines = result.cuisines.filter((cuisine) =>
+          cuisine.name.toLowerCase().includes(keyword.toLowerCase())
+        );
+        return cuisines.concat(matchingCuisines.map((cuisine) => ({
+          cuisineImage: cuisine.image,
+          cuisineName: cuisine.name,
+          restaurantId: result._id,
+          restoAvatar: result.avatar,
+          restoName: result.name,
+        })));
+      }, []);*/
+      
+
+
       console.log(itemResults);
       console.log(categoryResults);
       res.send({
         itemResults: itemResults,
         restoResults: restoResults,
         categoryResults: categoryResults,
+       
       });
     }
   );

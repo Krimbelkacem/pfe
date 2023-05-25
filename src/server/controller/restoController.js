@@ -17,19 +17,18 @@ const handlenewresto = asyncHandler(async function (req, res, next) {
   }
 
   const resto = new Resto();
-console.log(req.body.longitude)
-console.log(req.body.latitude)
-resto.name=req.body.name;
-resto. address=req.body.address;
+  console.log(req.body.longitude);
+  console.log(req.body.latitude);
+  resto.name = req.body.name;
+  resto.address = req.body.address;
   resto.avatar = req.file.filename;
   resto.owner = userId;
-  resto.latitude=parseFloat(req.body.latitude)
-  resto.longitude=parseFloat(req.body.longitude)
-
+  resto.latitude = parseFloat(req.body.latitude);
+  resto.longitude = parseFloat(req.body.longitude);
 
   try {
     await resto.save();
-    console.log('ok')
+    console.log("ok");
     const newRestoId = resto._id;
     User.findByIdAndUpdate(
       userId,
@@ -285,8 +284,7 @@ async function topRestos(req, res) {
   });
 }
 
-
-const recentsRestos = asyncHandler(async  (req, res) => {
+const recentsRestos = asyncHandler(async (req, res) => {
   try {
     const recentRestaurants = await Resto.find()
       .sort({ _id: -1 }) // Sort by descending order of _id (assumes _id is an auto-generated timestamp)
@@ -294,30 +292,27 @@ const recentsRestos = asyncHandler(async  (req, res) => {
 
     res.json(recentRestaurants);
   } catch (error) {
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: "Internal server error" });
   }
 });
-const randomCuisines=asyncHandler(async (req, res) => {
+const randomCuisines = asyncHandler(async (req, res) => {
   try {
     const cuisines = await Resto.aggregate([
-      { $unwind: '$cuisines' }, // Unwind the cuisines array
+      { $unwind: "$cuisines" }, // Unwind the cuisines array
       { $sample: { size: 10 } }, // Randomly sample 10 documents
     ]);
 
     res.json(cuisines.map((item) => item.cuisines));
   } catch (error) {
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: "Internal server error" });
   }
-})
+});
 
 const getAllRestos = async (req, res) => {
- 
   const restos = await Resto.find();
 
   res.status(200).json(restos);
 };
-
-
 
 // Add phone number to a restaurant
 const addPhone = async (req, res) => {
@@ -326,16 +321,16 @@ const addPhone = async (req, res) => {
   try {
     const resto = await Resto.findById(restoId);
     if (!resto) {
-      return res.status(404).json({ message: 'Restaurant not found' });
+      return res.status(404).json({ message: "Restaurant not found" });
     }
 
     resto.phone = phone;
     await resto.save();
 
-    res.status(200).json({ message: 'Phone number added successfully' });
+    res.status(200).json({ message: "Phone number added successfully" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -346,16 +341,16 @@ const deletePhone = async (req, res) => {
   try {
     const resto = await Resto.findById(restoId);
     if (!resto) {
-      return res.status(404).json({ message: 'Restaurant not found' });
+      return res.status(404).json({ message: "Restaurant not found" });
     }
 
     resto.phone = undefined;
     await resto.save();
 
-    res.status(200).json({ message: 'Phone number deleted successfully' });
+    res.status(200).json({ message: "Phone number deleted successfully" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -366,16 +361,16 @@ const addCuisine = async (req, res) => {
   try {
     const resto = await Resto.findById(restoId);
     if (!resto) {
-      return res.status(404).json({ message: 'Restaurant not found' });
+      return res.status(404).json({ message: "Restaurant not found" });
     }
 
     resto.cuisines.push({ image, name });
     await resto.save();
 
-    res.status(200).json({ message: 'Cuisine added successfully' });
+    res.status(200).json({ message: "Cuisine added successfully" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -386,21 +381,23 @@ const deleteCuisine = async (req, res) => {
   try {
     const resto = await Resto.findById(restoId);
     if (!resto) {
-      return res.status(404).json({ message: 'Restaurant not found' });
+      return res.status(404).json({ message: "Restaurant not found" });
     }
 
-    const cuisineIndex = resto.cuisines.findIndex(cuisine => cuisine._id.toString() === cuisineId);
+    const cuisineIndex = resto.cuisines.findIndex(
+      (cuisine) => cuisine._id.toString() === cuisineId
+    );
     if (cuisineIndex === -1) {
-      return res.status(404).json({ message: 'Cuisine not found' });
+      return res.status(404).json({ message: "Cuisine not found" });
     }
 
     resto.cuisines.splice(cuisineIndex, 1);
     await resto.save();
 
-    res.status(200).json({ message: 'Cuisine deleted successfully' });
+    res.status(200).json({ message: "Cuisine deleted successfully" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -411,16 +408,16 @@ const addDescription = async (req, res) => {
   try {
     const resto = await Resto.findById(restoId);
     if (!resto) {
-      return res.status(404).json({ message: 'Restaurant not found' });
+      return res.status(404).json({ message: "Restaurant not found" });
     }
 
     resto.description = description;
     await resto.save();
 
-    res.status(200).json({ message: 'Description added successfully' });
+    res.status(200).json({ message: "Description added successfully" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 };
 // Delete description from a restaurant
@@ -430,16 +427,16 @@ const deleteDescription = async (req, res) => {
   try {
     const resto = await Resto.findById(restoId);
     if (!resto) {
-      return res.status(404).json({ message: 'Restaurant not found' });
+      return res.status(404).json({ message: "Restaurant not found" });
     }
 
     resto.description = undefined;
     await resto.save();
 
-    res.status(200).json({ message: 'Description deleted successfully' });
+    res.status(200).json({ message: "Description deleted successfully" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 };
 // ...
@@ -451,18 +448,18 @@ const deleteCategory = async (req, res) => {
   try {
     const updatedResto = await Resto.findByIdAndUpdate(
       restoId,
-      { $pull: { 'menu.categories': { _id: categoryId } } },
+      { $pull: { "menu.categories": { _id: categoryId } } },
       { new: true }
     );
 
     if (!updatedResto) {
-      return res.status(404).json({ message: 'Restaurant not found' });
+      return res.status(404).json({ message: "Restaurant not found" });
     }
 
-    res.status(200).json({ message: 'Category deleted successfully' });
+    res.status(200).json({ message: "Category deleted successfully" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -473,23 +470,23 @@ const deleteItem = async (req, res) => {
   try {
     const updatedResto = await Resto.findByIdAndUpdate(
       restoId,
-      { $pull: { 'menu.categories.$[category].items': { _id: itemId } } },
-      { new: true, arrayFilters: [{ 'category._id': categoryId }] }
+      { $pull: { "menu.categories.$[category].items": { _id: itemId } } },
+      { new: true, arrayFilters: [{ "category._id": categoryId }] }
     );
 
     if (!updatedResto) {
-      return res.status(404).json({ message: 'Restaurant not found' });
+      return res.status(404).json({ message: "Restaurant not found" });
     }
 
-    res.status(200).json({ message: 'Item deleted successfully' });
+    res.status(200).json({ message: "Item deleted successfully" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
 module.exports = {
-  deleteCategory ,
+  deleteCategory,
   deleteItem,
   addPhone,
   deletePhone,

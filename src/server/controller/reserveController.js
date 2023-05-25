@@ -5,12 +5,11 @@ const User = require("../db/Schema/User");
 const Reserve = require("../db/Schema/Reservation");
 const asyncHandler = require("express-async-handler");
 const admin = require("firebase-admin");
-const serviceAccount = require('../config/service_account.json');
+const serviceAccount = require("../config/service_account..json");
+const io = require('../../../server'); 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+  credential: admin.credential.cert(serviceAccount),
 });
-
-
 
 const newReservation = asyncHandler(async (req, res) => {
   console.log(req.body.hours);
@@ -119,8 +118,6 @@ const rejectReservation = asyncHandler(async (req, res) => {
   }
 });
 
-
-
 // Define a new endpoint to handle accepting a reservation
 const acceptReservation = asyncHandler(async (req, res) => {
   try {
@@ -129,13 +126,12 @@ const acceptReservation = asyncHandler(async (req, res) => {
 
     // Update the reservation state to "accepted"
     reservation.state = "accepted";
-    await reservation.save();   // Send notification to the user
-    const title = "Reservation Accepted";
-    const body = "Your reservation has been accepted.";
-    const userId = reservation.user;
+    await reservation.save(); // Send notification to the user
 
-    await sendNotification(title, body, userId);
-    // Return the updated reservation document as a response
+
+
+
+ 
     res.json(reservation);
   } catch (error) {
     // Handle errors by returning an error response with the error message
@@ -147,7 +143,7 @@ const sendNotification = async (title, body, userId) => {
   try {
     const user = await User.findById(userId);
     if (!user) {
-      console.error('User not found.');
+      console.error("User not found.");
       return;
     }
 
@@ -160,20 +156,15 @@ const sendNotification = async (title, body, userId) => {
     };
 
     const response = await admin.messaging().send(message);
-    console.log('Notification sent:', response);
+    console.log("Notification sent:", response);
   } catch (error) {
-    console.error('Error sending notification:', error);
+    console.error("Error sending notification:", error);
     throw error;
   }
 };
 
-
-
-
-
-
 module.exports = {
-  sendNotification,
+
   rejectReservation,
   newReservation,
   removeReservation,

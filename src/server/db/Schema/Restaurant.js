@@ -33,19 +33,24 @@ const RestoSchema = new mongoose.Schema({
     type: String,
   },
   photos: [{ type: String }],
-  cuisines: [{ image: { type: String },
-    name: { type: String}}],
+
+  cuisines: [
+    {
+      image: { type: String },
+      name: { type: String },
+    },
+  ],
 
   phone: { type: String },
 
-latitude: {
-  type: Number,
-  required: true
-},
-longitude: {
-  type: Number,
-  required: true
-},
+  latitude: {
+    type: Number,
+    required: true,
+  },
+  longitude: {
+    type: Number,
+    required: true,
+  },
   price_average: { type: String },
   followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   reservations: [{ type: mongoose.Schema.Types.ObjectId, ref: "Reserve" }],
