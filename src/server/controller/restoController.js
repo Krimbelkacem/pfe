@@ -110,7 +110,7 @@ const handlefindresto = asyncHandler(async (req, response) => {
 });
 const handlegetresto = asyncHandler(async (req, response) => {
   const id = req.query.id;
-console.log(id)
+  console.log(id);
   const restos = await Resto.findById(id)
     .populate("followers")
     .populate({
@@ -485,30 +485,20 @@ const deleteItem = async (req, res) => {
   }
 };
 
-
-
-
-
-
-
-
-
-
-
 //recuperer le menu des restos
 const getMenuResto = async (req, res) => {
-  const restoId = req.query;
+  const restoId = req.query.restoId;
+  console.log(restoId);
 
   try {
     const menuResto = await Resto.findById(restoId);
-
 
     if (!menuResto) {
       return res.status(404).json({ message: "Restaurant not found" });
     }
 
     // Récupération du menu du restaurant
-    
+
     const menu = menuResto.menu;
 
     res.status(200).json({ menu });
@@ -517,7 +507,6 @@ const getMenuResto = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch menu" });
   }
 };
-
 
 //recuperer les detail resto
 const getPhotoResto = async (req, res) => {
@@ -540,9 +529,6 @@ const getPhotoResto = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch photos" });
   }
 };
-
-  
-
 
 module.exports = {
   deleteCategory,
