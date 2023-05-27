@@ -113,6 +113,7 @@ const handlegetresto = asyncHandler(async (req, response) => {
   console.log(id);
   const restos = await Resto.findById(id)
     .populate("followers")
+    .populate("owner")
     .populate({
       path: "reservations",
       populate: {
