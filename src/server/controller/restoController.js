@@ -357,8 +357,10 @@ const deletePhone = async (req, res) => {
 
 // Add cuisine to a restaurant
 const addCuisine = async (req, res) => {
-  const { restoId, image, name } = req.body;
-
+  const name = req.body.name;
+  const image = req.file.filename;
+  const restoId = req.query.id;
+  console.log(image, name, restoId);
   try {
     const resto = await Resto.findById(restoId);
     if (!resto) {
@@ -530,8 +532,35 @@ const getPhotoResto = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch photos" });
   }
 };
+const updatedetailsResto = async (req, res) => {
+  const restoid = req.query.id;
 
+  // Retrieve form data
+  const { name, phone, description } = req.body;
+  const image = req.file;
+  console.log("updating resto");
+  try {
+    // Update restaurant details in the database
+    await Resto.findOneAndUpdate(
+      { _id: restoid },
+      {
+        name: name || "",
+        phone: phone || "",
+        description: description || "",
+        avatar: image ? image.filename : "",
+      }
+    );
+
+    res
+      .status(200)
+      .json({ message: "Restaurant details updated successfully" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
 module.exports = {
+  updatedetailsResto,
   deleteCategory,
   deleteItem,
   addPhone,

@@ -6,7 +6,7 @@ const Reserve = require("../db/Schema/Reservation");
 const asyncHandler = require("express-async-handler");
 const admin = require("firebase-admin");
 const serviceAccount = require("../config/service_account..json");
-const io = require('../../../server'); 
+const io = require("../../../server");
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
@@ -23,7 +23,7 @@ const newReservation = asyncHandler(async (req, res) => {
     // Create a new reservation document
     const reserve = await Reserve.create({
       date: req.body.dateR,
-      time: req.body.hours + "heure" + req.body.minutes + "min",
+      time: req.body.selectedTime + "h/min",
       guests: req.body.guests,
       user: req.query.userId,
       Resto: req.query.restoId,
@@ -128,10 +128,6 @@ const acceptReservation = asyncHandler(async (req, res) => {
     reservation.state = "accepted";
     await reservation.save(); // Send notification to the user
 
-
-
-
- 
     res.json(reservation);
   } catch (error) {
     // Handle errors by returning an error response with the error message
@@ -164,7 +160,6 @@ const sendNotification = async (title, body, userId) => {
 };
 
 module.exports = {
-
   rejectReservation,
   newReservation,
   removeReservation,
