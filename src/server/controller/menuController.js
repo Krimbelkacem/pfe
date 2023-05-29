@@ -218,6 +218,7 @@ const handleadditem = asyncHandler(async function (req, res, next) {
       { new: true }
     );
     res.json("ok");
+    calculateAndUpdatePriceAverage(restoId);
   } catch (error) {
     res.status(500).send(error);
   }
@@ -236,6 +237,47 @@ const handleRemoveItem = asyncHandler(async function (req, res, next) {
     res.status(500).send(error);
   }
 });
+
+const calculateAndUpdatePriceAverage = async (restoId) => {
+  try {
+    const resto = await Resto.findById(restoId);
+
+    if (!resto) {
+      // Handle case when the restaurant is not found
+      return null;
+    }
+
+    const { menu } = resto;
+    let total = 0;
+    let itemCount = 0;
+
+    for (const category of menu.categories) {
+      for (const item of category.items) {
+        total += item.price;
+        itemCount++;
+      }
+    }
+
+    if (itemCount === 0) {
+      // Handle case when there are no items in the menu
+      return null;
+    }
+
+    const priceAverage = total / itemCount;
+
+    // Update the price_average field of the resto document
+    resto.price_average = priceAverage;
+
+    // Save the updated resto document
+    await resto.save();
+
+    return priceAverage;
+  } catch (error) {
+    // Handle error
+    console.error(error);
+    return null;
+  }
+};
 
 module.exports = {
   addmenuitem,

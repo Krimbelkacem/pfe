@@ -54,6 +54,7 @@ const RestoSchema = new mongoose.Schema({
   price_average: { type: String },
   followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   reservations: [{ type: mongoose.Schema.Types.ObjectId, ref: "Reserve" }],
+  openingHours: { type: String },
 });
 
 const Resto = mongoose.model("Resto", RestoSchema);

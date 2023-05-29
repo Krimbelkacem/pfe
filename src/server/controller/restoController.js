@@ -536,7 +536,7 @@ const updatedetailsResto = async (req, res) => {
   const restoid = req.query.id;
 
   // Retrieve form data
-  const { name, phone, description } = req.body;
+  const { name, phone, description, openingHours } = req.body;
   const image = req.file;
   console.log("updating resto");
   try {
@@ -544,6 +544,7 @@ const updatedetailsResto = async (req, res) => {
     await Resto.findOneAndUpdate(
       { _id: restoid },
       {
+        openingHours: openingHours || "",
         name: name || "",
         phone: phone || "",
         description: description || "",
