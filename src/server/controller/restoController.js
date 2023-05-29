@@ -560,7 +560,52 @@ const updatedetailsResto = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+const addcomments = async (req, res) => {
+  console.log("0000000000000000");
+  console.log(req.query.idR + "0000000000000000000");
+  const idR = req.query.idR;
+  const { comment } = req.body;
+  const userId = req.query.userId;
+  console.log(userId, idR, comment);
+  // Create a new comment object
+  const newComment = {
+    user: userId,
+    comment: comment,
+    date: new Date(),
+  };
+
+  // Find the restaurant by ID and update its comments array
+  Resto.findByIdAndUpdate(
+    idR,
+    { $push: { comments: newComment } },
+    { new: true }
+  )
+    .populate("comments.user", "name") // Populate the user field of the comment with only the name
+    .then((updatedResto) => {
+      res.json(updatedResto);
+    })
+    .catch((error) => {
+      res.status(500).json({ error: "Failed to add comment." });
+    });
+};
+
+const getcomments = async (req, res) => {
+  const id = req.query.idR;
+
+  try {
+    const restaurant = await Resto.findById(id).populate({
+      path: "comments.user",
+      select: "username picture",
+    });
+
+    res.json(restaurant.comments);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to retrieve comments." });
+  }
+};
 module.exports = {
+  getcomments,
+  addcomments,
   updatedetailsResto,
   deleteCategory,
   deleteItem,

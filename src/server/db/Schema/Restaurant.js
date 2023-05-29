@@ -55,6 +55,19 @@ const RestoSchema = new mongoose.Schema({
   followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   reservations: [{ type: mongoose.Schema.Types.ObjectId, ref: "Reserve" }],
   openingHours: { type: String },
+  comments: [
+    {
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+      comment: String,
+      date: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
 });
 
 const Resto = mongoose.model("Resto", RestoSchema);
