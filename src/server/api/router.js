@@ -38,6 +38,7 @@ const {
   getAllRestos,
   getMenuResto,
   getPhotoResto,
+  getUserCommentsAndPublications,
 } = require("../controller/restoController");
 const {
   handleaddmenu,
@@ -118,6 +119,9 @@ app.get("/getPhotoResto", getPhotoResto),
 
 //modification mot de passe user
 app.put("/putPasswordUser", putPasswordUser),
+
+//recuperer les commentaire et le publication des user dasn le resto
+app.get("/getUserCommentsAndPublications", getUserCommentsAndPublications),
 
 /*
 app.post("/addResto", upload.single("avatar"), async (req, response) => {

@@ -541,6 +541,56 @@ const getPhotoResto = async (req, res) => {
   }
 };
 
+
+//recupere le commentaire et les publication des utilisateur
+
+
+async function getUserCommentsAndPublications(req, res) {
+  const { idUser } = req.params;
+
+  try {
+    // Retrieve user comments and publications from Resto model
+    const restaurants = await Resto.find({ "comments.user": idUser }).populate("owner", "username");
+    const userComments = [];
+    const userPublications = [];
+
+    restaurants.forEach((restaurant) => {
+      restaurant.comments.forEach((comment) => {
+        if (comment.user.toString() === idUser) {
+          userComments.push({
+            restaurant: restaurant.name,
+            comment: comment.comment,
+            date: comment.date,
+          });
+        }
+      });
+
+      restaurant.menu.categories.forEach((category) => {
+        category.items.forEach((item) => {
+          if (item.user.toString() === idUser) {
+            userPublications.push({
+              restaurant: restaurant.name,
+              item: item.name,
+              description: item.description,
+              price: item.price,
+            });
+          }
+        });
+      });
+    });
+
+    res.status(200).json({
+      userComments,
+      userPublications,
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to retrieve user comments and publications" });
+  }
+}
+
+
+
+
   
 
 
@@ -566,4 +616,5 @@ module.exports = {
   handlegetresto,
   getMenuResto,
   getPhotoResto,
+  getUserCommentsAndPublications,
 };
