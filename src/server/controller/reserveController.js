@@ -1,15 +1,13 @@
 const { default: mongoose } = require("mongoose");
 
 const Resto = require("../db/Schema/Restaurant");
+
 const User = require("../db/Schema/User");
 const Reserve = require("../db/Schema/Reservation");
 const asyncHandler = require("express-async-handler");
-const admin = require("firebase-admin");
+
 const serviceAccount = require("../config/service_account..json");
 const io = require("../../../server");
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
 
 const newReservation = asyncHandler(async (req, res) => {
   console.log(req.body.hours);

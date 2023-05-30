@@ -3,6 +3,7 @@ const Resto = require("../db/Schema/Restaurant");
 const session = require("express-session");
 const generateToken = require("../config/generateToken");
 const asyncHandler = require("express-async-handler");
+const { response } = require("../api/router");
 
 const handleaddmenu = asyncHandler(async function (req, res, next) {
   console.log("id:" + req.query.id);
@@ -190,6 +191,7 @@ const addmenuitem = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
+/*
 const handleadditem = asyncHandler(async function (req, res, next) {
   if (!req.query || !req.body) {
     res.status(500).send("no id send");
@@ -203,7 +205,7 @@ const handleadditem = asyncHandler(async function (req, res, next) {
   if(req.body.name){ descriptio}
   if(req.body.price){}
   if(req.body.description){}
-  */
+  
   const category = req.body.category;
   const newItem = {
     name: req.body.name,
@@ -222,7 +224,64 @@ const handleadditem = asyncHandler(async function (req, res, next) {
   } catch (error) {
     res.status(500).send(error);
   }
+});*/
+const calculateAndUpdatePriceAverage = async (restoId) => {
+  try {
+    const restaurant = await Resto.findById(restoId).populate(
+      "menu.categories.items"
+    );
+
+    // Calculate price average
+    const menuItems = restaurant.menu.categories.flatMap(
+      (category) => category.items
+    );
+    const totalItems = menuItems.length;
+    const totalPrice = menuItems.reduce((total, item) => total + item.price, 0);
+    const priceAverage = totalPrice / totalItems;
+
+    restaurant.price_average = priceAverage.toFixed(2); // Update price_average field
+
+    await restaurant.save(); // Save the updated restaurant
+  } catch (error) {
+    // Handle the error
+    console.error(error);
+  }
+};
+
+const handleadditem = asyncHandler(async function (req, res, next) {
+  if (!req.query || !req.body) {
+    res.status(500).send("no id sent");
+    console.log("no id");
+    return;
+  }
+
+  console.log("id resto: " + req.query.id);
+  console.log("new item");
+  const restoId = req.query.id;
+  console.log(req.body.category);
+
+  const newItem = {
+    name: req.body.name,
+    description: req.body.description,
+    price: req.body.price,
+  };
+  console.log(req.body.category);
+
+  try {
+    const update = await Resto.findByIdAndUpdate(
+      restoId,
+      { $push: { "menu.categories.$[category].items": newItem } },
+      { new: true, arrayFilters: [{ "category._id": req.body.category }] }
+    );
+
+    await calculateAndUpdatePriceAverage(restoId);
+    console.log(res.price_average);
+    res.json("ok");
+  } catch (error) {
+    res.status(500).send(error);
+  }
 });
+
 const handleRemoveItem = asyncHandler(async function (req, res, next) {
   const { id, itemId } = req.query;
 
@@ -238,48 +297,30 @@ const handleRemoveItem = asyncHandler(async function (req, res, next) {
   }
 });
 
-const calculateAndUpdatePriceAverage = async (restoId) => {
+const deleteitems = async (req, res) => {
   try {
-    const resto = await Resto.findById(restoId);
+    const { itemIds } = req.body; // Array of item IDs to delete
 
-    if (!resto) {
-      // Handle case when the restaurant is not found
-      return null;
+    // Delete the items using the itemIds
+    const result = await Resto.updateMany(
+      { "menu.categories.items._id": { $in: itemIds } },
+      { $pull: { "menu.categories.$[].items": { _id: { $in: itemIds } } } },
+      { multi: true }
+    );
+
+    // Check the result to determine if the items were deleted successfully
+    if (result.nModified > 0) {
+      res.status(200).json({ message: "Items deleted successfully" });
+    } else {
+      res.status(404).json({ message: "Items not found or already deleted" });
     }
-
-    const { menu } = resto;
-    let total = 0;
-    let itemCount = 0;
-
-    for (const category of menu.categories) {
-      for (const item of category.items) {
-        total += item.price;
-        itemCount++;
-      }
-    }
-
-    if (itemCount === 0) {
-      // Handle case when there are no items in the menu
-      return null;
-    }
-
-    const priceAverage = total / itemCount;
-
-    // Update the price_average field of the resto document
-    resto.price_average = priceAverage;
-
-    // Save the updated resto document
-    await resto.save();
-
-    return priceAverage;
   } catch (error) {
-    // Handle error
-    console.error(error);
-    return null;
+    console.error("Error deleting items:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
-
 module.exports = {
+  deleteitems,
   addmenuitem,
   handleaddmenu,
   handleaddcategory,
