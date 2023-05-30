@@ -1,4 +1,5 @@
 const { default: mongoose } = require("mongoose");
+const bcrypt = require("bcryptjs");
 
 const User = require("../db/Schema/User");
 const Resto = require("../db/Schema/Restaurant");
@@ -191,6 +192,38 @@ const getAllUsers = async (req, res) => {
 
 
 
+//controller update password
+const putPasswordUser = async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  try {
+    // Recherche de l'utilisateur par ID
+    const user = await User.findById(req.query.id);
+      
+    if (!user) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé' });
+    }
+
+    // Vérification du mot de passe actuel
+    const isPasswordMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordMatch) {
+      return res.status(401).json({ message: 'Mot de passe actuel incorrect' });
+    }
+
+  
+
+    // Mise à jour du mot de passe de l'utilisateur
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ message: 'Mot de passe mis à jour avec succès' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }  
+
+};
+
+
 
 module.exports = {
   handleNewUser,
@@ -200,4 +233,5 @@ module.exports = {
   handledeleteteuser,
   authAdmin,
   getAllUsers,
+  putPasswordUser,
 };
