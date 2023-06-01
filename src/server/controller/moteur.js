@@ -22,13 +22,29 @@ const handleSearch = asyncHandler(async (req, res) => {
           { "cuisines.name": { $regex: keyword, $options: "i" } }, // Search for cuisines by name
         ],
       },
-      "_id name menu avatar cuisines",
+      "_id name menu avatar cuisines  price_average address",
       (err, results) => {
         // Filtrer les résultats par type
         const restoResults = results.filter((result) =>
           result.name.toLowerCase().includes(keyword.toLowerCase())
         );
 
+        const lowPriceResto = [];
+        const mediumPriceResto = [];
+        const highPriceResto = [];
+
+        restoResults.forEach((result) => {
+          if (result.price_average >= 0 && result.price_average <= 100) {
+            lowPriceResto.push(result);
+          } else if (
+            result.price_average > 100 &&
+            result.price_average <= 1000
+          ) {
+            mediumPriceResto.push(result);
+          } else if (result.price_average > 1000) {
+            highPriceResto.push(result);
+          }
+        });
         const categoryResults = results.reduce((categories, result) => {
           const matchingCategories = result.menu.categories.filter((category) =>
             category.name.toLowerCase().includes(keyword.toLowerCase())
@@ -98,6 +114,10 @@ const handleSearch = asyncHandler(async (req, res) => {
           restoResults: restoResults,
           categoryResults: categoryResults,
           cuisineResults: cuisineResults,
+
+          lowPriceResto: lowPriceResto,
+          mediumPriceResto: mediumPriceResto,
+          highPriceResto: highPriceResto,
         });
       }
     );

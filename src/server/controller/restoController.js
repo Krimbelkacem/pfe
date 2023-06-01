@@ -124,6 +124,9 @@ const handlegetresto = asyncHandler(async (req, response) => {
     .exec();
 
   try {
+    console.log(
+      restos.price_average + "00000000000000000000000000000000000000000"
+    );
     response.json(restos);
   } catch (error) {
     response.status(500).send(error);

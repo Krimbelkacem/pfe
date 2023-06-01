@@ -157,6 +157,51 @@ const addmenuitem = async (req, res) => {
   try {
     const resto = await Resto.findById(id);
     if (!resto) {
+      console.log("resto not found");
+      return res.status(404).json({ message: "Restaurant not found" });
+    }
+
+    const newItem = { name, image, price, description };
+    const updatedResto = await Resto.findOneAndUpdate(
+      { _id: id, "menu.categories._id": idC },
+      { $push: { "menu.categories.$.items": newItem } },
+      { new: true }
+    );
+
+    // Calculate price average
+    const menuItems = updatedResto.menu.categories.find(
+      (category) => category._id.toString() === idC
+    ).items;
+    const totalItems = menuItems.length;
+    const totalPrice = menuItems.reduce((total, item) => total + item.price, 0);
+    const priceAverage = totalPrice / totalItems;
+
+    updatedResto.price_average = priceAverage.toFixed(2); // Update price_average field
+    await updatedResto.save(); // Save the updated restaurant
+
+    console.log("ok");
+    return res
+      .status(201)
+      .json({ message: "Item added to menu", item: newItem });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+/*
+const addmenuitem = async (req, res) => {
+  const { name, price, description } = req.body;
+  const imagefile = req.file;
+  const image = req.file.filename;
+  console.log(req.file.path);
+  console.log(imagefile);
+  const { id } = req.query;
+  const idC = req.query.idC;
+  console.log("id resto :" + id);
+  console.log("id category: " + idC);
+  try {
+    const resto = await Resto.findById(id);
+    if (!resto) {
       console.log("resto not founnd");
       return res.status(404).json({ message: "Restaurant not found" });
     }
@@ -177,20 +222,21 @@ const addmenuitem = async (req, res) => {
     return res
       .status(201)
       .json({ message: "Item added to menu", item: newItem });*/
-    const newItem = { name, image, price, description };
+/*  const newItem = { name, image, price, description };
     const updatedResto = await Resto.findOneAndUpdate(
       { _id: id, "menu.categories._id": idC },
       { $push: { "menu.categories.$.items": newItem } },
       { new: true }
     );
     console.log("ok");
+    await calculateAndUpdatePriceAverage (restoId);
     return res
       .status(201)
       .json({ message: "Item added to menu", item: newItem });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
-};
+};*/
 /*
 const handleadditem = asyncHandler(async function (req, res, next) {
   if (!req.query || !req.body) {
@@ -226,22 +272,25 @@ const handleadditem = asyncHandler(async function (req, res, next) {
   }
 });*/
 const calculateAndUpdatePriceAverage = async (restoId) => {
+  console.log("calcule");
   try {
     const restaurant = await Resto.findById(restoId).populate(
       "menu.categories.items"
     );
-
+    console.log("resto" + restaurant);
     // Calculate price average
     const menuItems = restaurant.menu.categories.flatMap(
       (category) => category.items
     );
     const totalItems = menuItems.length;
+    console.log(totalItems);
     const totalPrice = menuItems.reduce((total, item) => total + item.price, 0);
+    console.log(totalPrice);
     const priceAverage = totalPrice / totalItems;
-
+    console.log(priceAverage);
     restaurant.price_average = priceAverage.toFixed(2); // Update price_average field
 
-    await restaurant.save(); // Save the updated restaurant
+    //await restaurant.save(); // Save the updated restaurant
   } catch (error) {
     // Handle the error
     console.error(error);
@@ -274,7 +323,6 @@ const handleadditem = asyncHandler(async function (req, res, next) {
       { new: true, arrayFilters: [{ "category._id": req.body.category }] }
     );
 
-    await calculateAndUpdatePriceAverage(restoId);
     console.log(res.price_average);
     res.json("ok");
   } catch (error) {
