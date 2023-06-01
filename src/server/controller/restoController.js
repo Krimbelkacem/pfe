@@ -110,7 +110,7 @@ const handlefindresto = asyncHandler(async (req, response) => {
 });
 const handlegetresto = asyncHandler(async (req, response) => {
   const id = req.query.id;
-console.log(id)
+  console.log(id);
   const restos = await Resto.findById(id)
     .populate("followers")
     .populate({
@@ -488,30 +488,20 @@ const deleteItem = async (req, res) => {
   }
 };
 
-
-
-
-
-
-
-
-
-
-
 //recuperer le menu des restos
 const getMenuResto = async (req, res) => {
-  const restoId = req.query;
-
+  const restoId = req.query.restoId;
+  console.log("laarvi");
+  console.log(restoId);
   try {
     const menuResto = await Resto.findById(restoId);
-
 
     if (!menuResto) {
       return res.status(404).json({ message: "Restaurant not found" });
     }
 
     // Récupération du menu du restaurant
-    
+
     const menu = menuResto.menu;
 
     res.status(200).json({ menu });
@@ -520,7 +510,6 @@ const getMenuResto = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch menu" });
   }
 };
-
 
 //recuperer les photo resto
 const getPhotoResto = async (req, res) => {
@@ -544,16 +533,17 @@ const getPhotoResto = async (req, res) => {
   }
 };
 
-
 //recupere le commentaire et les publication des utilisateur
-
 
 async function getUserCommentsAndPublications(req, res) {
   const { idUser } = req.params;
 
   try {
     // Retrieve user comments and publications from Resto model
-    const restaurants = await Resto.find({ "comments.user": idUser }).populate("owner", "username");
+    const restaurants = await Resto.find({ "comments.user": idUser }).populate(
+      "owner",
+      "username"
+    );
     const userComments = [];
     const userPublications = [];
 
@@ -587,15 +577,11 @@ async function getUserCommentsAndPublications(req, res) {
       userPublications,
     });
   } catch (error) {
-    res.status(500).json({ error: "Failed to retrieve user comments and publications" });
+    res
+      .status(500)
+      .json({ error: "Failed to retrieve user comments and publications" });
   }
 }
-
-
-
-
-  
-
 
 module.exports = {
   deleteCategory,
