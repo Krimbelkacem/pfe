@@ -14,9 +14,10 @@ const {
   handledeleteteuser,
   authAdmin,
   getAllUsers,
-  putPasswordUser,
 } = require("../controller/userController");
 const {
+  getcomments,
+  addcomments,
   deleteCategory,
   deleteItem,
   addPhone,
@@ -38,7 +39,7 @@ const {
   getAllRestos,
   getMenuResto,
   getPhotoResto,
-  getUserCommentsAndPublications,
+  updatedetailsResto,
 } = require("../controller/restoController");
 const {
   handleaddmenu,
@@ -46,6 +47,7 @@ const {
   handlereadcategory,
   handleadditem,
   addmenuitem,
+  deleteitems,
 } = require("../controller/menuController");
 const {
   newReservation,
@@ -65,8 +67,8 @@ app.post("/search", handleSearch);
 app.post("/admin-page", authAdmin);
 //////////////////////
 app.post("/newReservation", newReservation);
-app.put("/acceptReservation",acceptReservation);
-app.put("/rejectReservation",rejectReservation);
+app.put("/acceptReservation", acceptReservation);
+app.put("/rejectReservation", rejectReservation);
 /////////////////
 app.post("/addfollower", follow);
 app.post("/unfollow", unfollow);
@@ -76,7 +78,7 @@ app.post("/login", authUser);
 app.get("/profile", handlegetuser);
 
 app.post("/updateprofil", handleupdateuser);
-app.post("/deleteprofil",handledeleteteuser);
+app.post("/deleteprofil", handledeleteteuser);
 app.post("/updateresto", upload.single("photos"), handleupdateresto);
 
 app.post("/addmenu", handleaddmenu);
@@ -85,14 +87,14 @@ app.get("/category", handlereadcategory);
 
 app.post("/additem", upload.single("image"), addmenuitem);
 /////////////////////////////////////////////////////
-app.post("/ deleteCategory ", deleteCategory);
-app.post("/ deleteItem ", deleteItem);
-app.post("/ addPhone ", addPhone);
-app.post("/ deletePhone ", deletePhone);
-app.post("/  addCuisine ", addCuisine);
-app.post("/ deleteCuisine ", deleteCuisine);
+app.post("/deleteCategory", deleteCategory);
+app.post("/deleteItems", deleteItem);
+app.post("/addPhone ", addPhone);
+app.post("/deletePhone ", deletePhone);
+app.post("/addCuisine", upload.single("image"), addCuisine);
+app.post("/deleteCuisine ", deleteCuisine);
 app.post("/addDescription ", addDescription);
-app.post("/ deleteDescription ", deleteDescription);
+app.post("/deleteDescription ", deleteDescription);
 
 //////////////////////////////////////////////////////
 
@@ -106,8 +108,6 @@ app.get("/admin_resto", getAllRestos);
 //recents-restaurants
 app.get("/random-cuisines", randomCuisines);
 
-
-
 //recuperer les detail resto
 // app.get("/getDetailResto", getDetailResto);
 
@@ -116,13 +116,12 @@ app.get("/getMenuResto", getMenuResto);
 
 //recuperer les photo resto
 app.get("/getPhotoResto", getPhotoResto),
+  app.post("/updatedetailsResto", upload.single("image"), updatedetailsResto);
+app.post("/addcomments", addcomments);
+app.get("/getcomments", getcomments);
 
-//modification mot de passe user
-app.put("/putPasswordUser", putPasswordUser),
-
-//recuperer les commentaire et le publication des user dasn le resto
-app.get("/getUserCommentsAndPublications", getUserCommentsAndPublications),
-
+// DELETE route to delete multiple items
+app.post("/deleteitems", deleteitems);
 /*
 app.post("/addResto", upload.single("avatar"), async (req, response) => {
   const resto = new Resto(req.body);
