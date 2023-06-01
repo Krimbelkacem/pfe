@@ -110,10 +110,9 @@ const handlefindresto = asyncHandler(async (req, response) => {
 });
 const handlegetresto = asyncHandler(async (req, response) => {
   const id = req.query.id;
-  console.log(id);
+console.log(id)
   const restos = await Resto.findById(id)
     .populate("followers")
-    .populate("owner")
     .populate({
       path: "reservations",
       populate: {
@@ -360,10 +359,8 @@ const deletePhone = async (req, res) => {
 
 // Add cuisine to a restaurant
 const addCuisine = async (req, res) => {
-  const name = req.body.name;
-  const image = req.file.filename;
-  const restoId = req.query.id;
-  console.log(image, name, restoId);
+  const { restoId, image, name } = req.body;
+
   try {
     const resto = await Resto.findById(restoId);
     if (!resto) {
@@ -491,20 +488,30 @@ const deleteItem = async (req, res) => {
   }
 };
 
+
+
+
+
+
+
+
+
+
+
 //recuperer le menu des restos
 const getMenuResto = async (req, res) => {
-  const restoId = req.query.restoId;
-  console.log(restoId);
+  const restoId = req.query;
 
   try {
     const menuResto = await Resto.findById(restoId);
+
 
     if (!menuResto) {
       return res.status(404).json({ message: "Restaurant not found" });
     }
 
     // Récupération du menu du restaurant
-
+    
     const menu = menuResto.menu;
 
     res.status(200).json({ menu });
@@ -514,9 +521,10 @@ const getMenuResto = async (req, res) => {
   }
 };
 
-//recuperer les detail resto
+
+//recuperer les photo resto
 const getPhotoResto = async (req, res) => {
-  const { restoId } = req.params;
+  const { restoId } = req.query;
 
   try {
     // Recherche du restaurant par ID
@@ -535,81 +543,61 @@ const getPhotoResto = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch photos" });
   }
 };
-const updatedetailsResto = async (req, res) => {
-  const restoid = req.query.id;
 
-  // Retrieve form data
-  const { name, phone, description, openingHours } = req.body;
-  const image = req.file;
-  console.log("updating resto");
-  try {
-    // Update restaurant details in the database
-    await Resto.findOneAndUpdate(
-      { _id: restoid },
-      {
-        openingHours: openingHours || "",
-        name: name || "",
-        phone: phone || "",
-        description: description || "",
-        avatar: image ? image.filename : "",
-      }
-    );
 
-    res
-      .status(200)
-      .json({ message: "Restaurant details updated successfully" });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-const addcomments = async (req, res) => {
-  console.log("0000000000000000");
-  console.log(req.query.idR + "0000000000000000000");
-  const idR = req.query.idR;
-  const { comment } = req.body;
-  const userId = req.query.userId;
-  console.log(userId, idR, comment);
-  // Create a new comment object
-  const newComment = {
-    user: userId,
-    comment: comment,
-    date: new Date(),
-  };
+//recupere le commentaire et les publication des utilisateur
 
-  // Find the restaurant by ID and update its comments array
-  Resto.findByIdAndUpdate(
-    idR,
-    { $push: { comments: newComment } },
-    { new: true }
-  )
-    .populate("comments.user", "name") // Populate the user field of the comment with only the name
-    .then((updatedResto) => {
-      res.json(updatedResto);
-    })
-    .catch((error) => {
-      res.status(500).json({ error: "Failed to add comment." });
-    });
-};
 
-const getcomments = async (req, res) => {
-  const id = req.query.idR;
+async function getUserCommentsAndPublications(req, res) {
+  const { idUser } = req.params;
 
   try {
-    const restaurant = await Resto.findById(id).populate({
-      path: "comments.user",
-      select: "username picture",
+    // Retrieve user comments and publications from Resto model
+    const restaurants = await Resto.find({ "comments.user": idUser }).populate("owner", "username");
+    const userComments = [];
+    const userPublications = [];
+
+    restaurants.forEach((restaurant) => {
+      restaurant.comments.forEach((comment) => {
+        if (comment.user.toString() === idUser) {
+          userComments.push({
+            restaurant: restaurant.name,
+            comment: comment.comment,
+            date: comment.date,
+          });
+        }
+      });
+
+      restaurant.menu.categories.forEach((category) => {
+        category.items.forEach((item) => {
+          if (item.user.toString() === idUser) {
+            userPublications.push({
+              restaurant: restaurant.name,
+              item: item.name,
+              description: item.description,
+              price: item.price,
+            });
+          }
+        });
+      });
     });
 
-    res.json(restaurant.comments);
+    res.status(200).json({
+      userComments,
+      userPublications,
+    });
   } catch (error) {
-    res.status(500).json({ error: "Failed to retrieve comments." });
+    res.status(500).json({ error: "Failed to retrieve user comments and publications" });
   }
-};
+}
+
+
+
+
+  
+
+
 module.exports = {
-  getcomments,
-  addcomments,
-  updatedetailsResto,
   deleteCategory,
   deleteItem,
   addPhone,
@@ -631,4 +619,5 @@ module.exports = {
   handlegetresto,
   getMenuResto,
   getPhotoResto,
+  getUserCommentsAndPublications,
 };
