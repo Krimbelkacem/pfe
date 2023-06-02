@@ -585,7 +585,57 @@ async function getUserCommentsAndPublications(req, res) {
   }
 }
 
+const getcomments = async (req, res) => {
+  try {
+    const restoId = req.query.restoId; // Assuming you pass the restoId in the query parameters
+
+    // Find the resto by ID and populate the 'user' field in the comments
+    const resto = await Resto.findById(restoId).populate("comments.user");
+
+    if (!resto) {
+      return res.status(404).json({ error: "Resto not found" });
+    }
+
+    res.status(200).json({ comments: resto.comments });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+const addcomments = async (req, res) => {
+  try {
+    const restoId = req.body.restoId; // Assuming you pass the restoId in the request body
+    const comment = req.body.comment; // Assuming you pass the comment in the request body
+
+    // Find the resto by ID
+    const resto = await Resto.findById(restoId);
+
+    if (!resto) {
+      return res.status(404).json({ error: "Resto not found" });
+    }
+
+    // Create a new comment object
+    const newComment = {
+      user: req.user._id, // Assuming you have user authentication and pass the user ID in the request
+      comment: comment,
+      date: Date.now(),
+    };
+
+    // Add the new comment to the comments array
+    resto.comments.push(newComment);
+
+    // Save the updated resto
+    await resto.save();
+
+    res.status(200).json({ message: "Comment added successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
 module.exports = {
+  addcomments,
+  getcomments,
   deleteCategory,
   deleteItem,
   addPhone,
