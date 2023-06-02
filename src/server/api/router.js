@@ -118,11 +118,11 @@ app.get("/getMenuResto", getMenuResto);
 //recuperer les photo resto
 app.get("/getPhotoResto", getPhotoResto),
   //app.post("/updatedetailsResto", upload.single("image"), updatedetailsResto);
-  //  app.post("/addcomments", addcomments);
-  //app.get("/getcomments", getcomments);
+  app.post("/addcomments", addcomments);
+app.get("/getcomments", getcomments);
 
-  // DELETE route to delete multiple items
-  app.delete("/deleteitems", deleteitems);
+// DELETE route to delete multiple items
+app.delete("/deleteitems", deleteitems);
 /*
 app.post("/addResto", upload.single("avatar"), async (req, response) => {
   const resto = new Resto(req.body);
