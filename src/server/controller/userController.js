@@ -65,6 +65,7 @@ async function authAdmin(req, res, next) {
   }
 }
 const authUser = asyncHandler(async (req, res) => {
+  console.log("auth user          000000000000000000000");
   const email = req.body.email;
   const password = req.body.password;
   console.log("auth user");
@@ -180,17 +181,11 @@ const handledeleteteuser = asyncHandler(async (req, res) => {
 
 const getAllUsers = async (req, res) => {
   console.log("admin users");
- // const users = await User.find().select();
-
- 
-
-
+  // const users = await User.find().select();
 
   const users = await User.find({ isAdmin: { $ne: true } });
   res.status(200).json(users);
 };
-
-
 
 //controller update password
 const putPasswordUser = async (req, res) => {
@@ -199,31 +194,29 @@ const putPasswordUser = async (req, res) => {
   try {
     // Recherche de l'utilisateur par ID
     const user = await User.findById(req.query.id);
-      
+
     if (!user) {
-      return res.status(404).json({ message: 'Utilisateur non trouvé' });
+      return res.status(404).json({ message: "Utilisateur non trouvé" });
     }
 
     // Vérification du mot de passe actuel
-    const isPasswordMatch = await bcrypt.compare(currentPassword, user.password);
+    const isPasswordMatch = await bcrypt.compare(
+      currentPassword,
+      user.password
+    );
     if (!isPasswordMatch) {
-      return res.status(401).json({ message: 'Mot de passe actuel incorrect' });
+      return res.status(401).json({ message: "Mot de passe actuel incorrect" });
     }
-
-  
 
     // Mise à jour du mot de passe de l'utilisateur
     user.password = newPassword;
     await user.save();
 
-    res.json({ message: 'Mot de passe mis à jour avec succès' });
+    res.json({ message: "Mot de passe mis à jour avec succès" });
   } catch (err) {
     res.status(500).json({ message: err.message });
-  }  
-
+  }
 };
-
-
 
 module.exports = {
   handleNewUser,

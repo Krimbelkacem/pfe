@@ -47,6 +47,7 @@ const {
   handlereadcategory,
   handleadditem,
   addmenuitem,
+
   deleteitems,
 } = require("../controller/menuController");
 const {
@@ -85,7 +86,7 @@ app.post("/addmenu", handleaddmenu);
 app.post("/addcategory", handleaddcategory);
 app.get("/category", handlereadcategory);
 
-app.post("/additem", upload.single("image"), addmenuitem);
+app.post("/additem", addmenuitem);
 /////////////////////////////////////////////////////
 app.post("/deleteCategory", deleteCategory);
 app.post("/deleteItems", deleteItem);
@@ -116,12 +117,12 @@ app.get("/getMenuResto", getMenuResto);
 
 //recuperer les photo resto
 app.get("/getPhotoResto", getPhotoResto),
-  app.post("/updatedetailsResto", upload.single("image"), updatedetailsResto);
-app.post("/addcomments", addcomments);
-app.get("/getcomments", getcomments);
+  //app.post("/updatedetailsResto", upload.single("image"), updatedetailsResto);
+  //  app.post("/addcomments", addcomments);
+  //app.get("/getcomments", getcomments);
 
-// DELETE route to delete multiple items
-app.post("/deleteitems", deleteitems);
+  // DELETE route to delete multiple items
+  app.delete("/deleteitems", deleteitems);
 /*
 app.post("/addResto", upload.single("avatar"), async (req, response) => {
   const resto = new Resto(req.body);

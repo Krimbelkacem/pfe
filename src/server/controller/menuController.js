@@ -145,11 +145,9 @@ const deleteCategory = asyncHandler(async (req, res) => {
 });
 
 const addmenuitem = async (req, res) => {
-  const { name, price, description } = req.body;
-  const imagefile = req.file;
-  const image = req.file.filename;
-  console.log(req.file.path);
-  console.log(imagefile);
+  const { name, description, price } = req.body;
+
+  console.log(req.body);
   const { id } = req.query;
   const idC = req.query.idC;
   console.log("id resto :" + id);
@@ -161,7 +159,13 @@ const addmenuitem = async (req, res) => {
       return res.status(404).json({ message: "Restaurant not found" });
     }
 
-    const newItem = { name, image, price, description };
+    // const newItem = { name,  price, description };
+    const newItem = {
+      name: name,
+      description: description,
+      price: price,
+    };
+
     const updatedResto = await Resto.findOneAndUpdate(
       { _id: id, "menu.categories._id": idC },
       { $push: { "menu.categories.$.items": newItem } },
@@ -346,18 +350,25 @@ const handleRemoveItem = asyncHandler(async function (req, res, next) {
 });
 
 const deleteitems = async (req, res) => {
+  console.log(
+    "deleteitems000000000000000000000000000000000000000000000000000000000000000000000"
+  );
   try {
-    const { itemIds } = req.body; // Array of item IDs to delete
+    const { idR } = req.query;
+    const { selectedItemIds } = req.body;
 
-    // Delete the items using the itemIds
-    const result = await Resto.updateMany(
-      { "menu.categories.items._id": { $in: itemIds } },
-      { $pull: { "menu.categories.$[].items": { _id: { $in: itemIds } } } },
-      { multi: true }
+    console.log(selectedItemIds); // Log the received array of item IDs
+
+    const result = await Resto.updateOne(
+      { _id: idR, "menu.categories.items._id": { $in: selectedItemIds } },
+      {
+        $pull: {
+          "menu.categories.$[].items": { _id: { $in: selectedItemIds } },
+        },
+      }
     );
 
-    // Check the result to determine if the items were deleted successfully
-    if (result.nModified > 0) {
+    if (result.nModified < 0) {
       res.status(200).json({ message: "Items deleted successfully" });
     } else {
       res.status(404).json({ message: "Items not found or already deleted" });

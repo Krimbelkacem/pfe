@@ -446,8 +446,10 @@ const deleteDescription = async (req, res) => {
 
 // Delete a category from a restaurant's menu
 const deleteCategory = async (req, res) => {
-  const { restoId, categoryId } = req.body;
+  const restoId = req.query.idR;
 
+  const categoryId = req.query.idC;
+  console.log("delete cat" + restoId, categoryId);
   try {
     const updatedResto = await Resto.findByIdAndUpdate(
       restoId,
