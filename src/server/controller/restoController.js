@@ -587,49 +587,45 @@ async function getUserCommentsAndPublications(req, res) {
 
 const getcomments = async (req, res) => {
   try {
-    const restoId = req.query.restoId; // Assuming you pass the restoId in the query parameters
+    const { idR } = req.query;
 
-    // Find the resto by ID and populate the 'user' field in the comments
-    const resto = await Resto.findById(restoId).populate("comments.user");
+    const restaurant = await Resto.findById(idR, "comments").populate(
+      "comments.user"
+    );
 
-    if (!resto) {
-      return res.status(404).json({ error: "Resto not found" });
+    if (!restaurant) {
+      return res.status(404).json({ error: "Restaurant not found" });
     }
 
-    res.status(200).json({ comments: resto.comments });
+    res.status(200).json(restaurant.comments);
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching comments:", error);
     res.status(500).json({ error: "Server error" });
   }
 };
 const addcomments = async (req, res) => {
   try {
-    const restoId = req.body.restoId; // Assuming you pass the restoId in the request body
-    const comment = req.body.comment; // Assuming you pass the comment in the request body
+    const { idR, userId } = req.query;
+    const { comment } = req.body;
 
-    // Find the resto by ID
-    const resto = await Resto.findById(restoId);
+    const restaurant = await Resto.findById(idR);
 
-    if (!resto) {
-      return res.status(404).json({ error: "Resto not found" });
+    if (!restaurant) {
+      return res.status(404).json({ error: "Restaurant not found" });
     }
 
-    // Create a new comment object
     const newComment = {
-      user: req.user._id, // Assuming you have user authentication and pass the user ID in the request
+      user: userId,
       comment: comment,
       date: Date.now(),
     };
 
-    // Add the new comment to the comments array
-    resto.comments.push(newComment);
+    restaurant.comments.push(newComment);
+    await restaurant.save();
 
-    // Save the updated resto
-    await resto.save();
-
-    res.status(200).json({ message: "Comment added successfully" });
+    res.status(200).json({ message: "Comment added successfully!" });
   } catch (error) {
-    console.error(error);
+    console.error("Error adding comment:", error);
     res.status(500).json({ error: "Server error" });
   }
 };

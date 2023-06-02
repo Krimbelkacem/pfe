@@ -45,6 +45,7 @@ const handleSearch = asyncHandler(async (req, res) => {
             highPriceResto.push(result);
           }
         });
+        /*
         const categoryResults = results.reduce((categories, result) => {
           const matchingCategories = result.menu.categories.filter((category) =>
             category.name.toLowerCase().includes(keyword.toLowerCase())
@@ -52,7 +53,25 @@ const handleSearch = asyncHandler(async (req, res) => {
           return categories.concat(
             matchingCategories.map((category) => category.name)
           );
+        }, []);*/
+
+        const categoryResults = results.reduce((categories, result) => {
+          const matchingCategories = result.menu.categories.filter((category) =>
+            category.name.toLowerCase().includes(keyword.toLowerCase())
+          );
+          const categoriesWithRestoInfo = matchingCategories.map(
+            (category) => ({
+              categoryId: category._id,
+              name: category.name,
+              restaurantId: result._id,
+              restoAvatar: result.avatar,
+              restoName: result.name,
+              items: category.items,
+            })
+          );
+          return categories.concat(categoriesWithRestoInfo);
         }, []);
+
         const itemResults = results.reduce((items, result) => {
           const matchingItems = result.menu.categories.reduce(
             (items, category) => {
