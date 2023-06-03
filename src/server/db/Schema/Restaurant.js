@@ -54,7 +54,29 @@ const RestoSchema = new mongoose.Schema({
   price_average: { type: Number, default: 0.0 },
   followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   reservations: [{ type: mongoose.Schema.Types.ObjectId, ref: "Reserve" }],
-  openingHours: { type: String },
+  // openingHours: { type: String },
+  openingHours: [
+    {
+      day: {
+        type: String,
+        enum: [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+          "Sunday",
+        ],
+      },
+      startTime: {
+        type: String,
+      },
+      endTime: {
+        type: String,
+      },
+    },
+  ],
   comments: [
     {
       user: {

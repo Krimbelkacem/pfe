@@ -359,18 +359,25 @@ const deletePhone = async (req, res) => {
 
 // Add cuisine to a restaurant
 const addCuisine = async (req, res) => {
+  console.loge("adcuisines");
   const { restoId, image, name } = req.body;
 
   try {
-    const resto = await Resto.findById(restoId);
+    const resto = await Resto.findByIdAndUpdate(
+      restoId,
+      {
+        $push: {
+          cuisines: { image, name },
+        },
+      },
+      { new: true }
+    );
+
     if (!resto) {
       return res.status(404).json({ message: "Restaurant not found" });
     }
 
-    resto.cuisines.push({ image, name });
-    await resto.save();
-
-    res.status(200).json({ message: "Cuisine added successfully" });
+    res.status(200).json({ message: "Cuisine added successfully", resto });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -629,7 +636,110 @@ const addcomments = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
+const updateHours = (req, res) => {
+  console.log("33333333333333");
+  const restaurantId = req.query.id;
+  const openingHours = req.body;
+
+  Resto.findByIdAndUpdate(
+    restaurantId,
+    { openingHours },
+    { new: true },
+    (err, updatedResto) => {
+      if (err) {
+        console.error("Error updating opening hours:", err);
+        return res
+          .status(500)
+          .json({ error: "An error occurred while updating opening hours" });
+      }
+      res.status(200).json(updatedResto);
+    }
+  );
+};
+
+const isRestaurantOpen = async (req, res) => {
+  console.log("222kjhlifa negh");
+
+  try {
+    const id = req.query.id;
+    const resto = await Resto.findById(id);
+
+    if (!resto) {
+      return res.status(404).json({ error: "Resto not found" });
+    }
+
+    const currentHour = new Date().getHours(); // Get the current hour (0-23)
+
+    const currentDay = new Date().toLocaleDateString("en-US", {
+      weekday: "long",
+    });
+
+    const openingHoursToday = resto.openingHours.find(
+      (hours) => hours.day === currentDay
+    );
+    console.log(openingHoursToday);
+    if (!openingHoursToday) {
+      return res.json({ status: "Closed" });
+    }
+
+    const openingTime = new Date(
+      `June 3, 2023 ${openingHoursToday.startTime}:00`
+    );
+    const closingTime = new Date(
+      `June 3, 2023 ${openingHoursToday.endTime}:00`
+    );
+
+    console.log(openingTime.getHours(), "opentime");
+    console.log(closingTime.getHours(), "closetime");
+    console.log(currentHour, "currentime");
+
+    if (
+      currentHour >= openingTime.getHours() &&
+      currentHour <= closingTime.getHours()
+    ) {
+      return res.json({ status: "Open" });
+    } else {
+      return res.json({ status: "Closed" });
+    }
+  } catch (error) {
+    console.error("Error retrieving opening hours:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+const updatedetailsResto = async (req, res) => {
+  try {
+    const { id } = req.query; // Assuming you pass the restaurant ID as a query parameter
+
+    // Check if the restaurant exists
+    const resto = await Resto.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          name: req.body.name || resto.name,
+          phone: req.body.phone || resto.phone,
+          description: req.body.description || resto.description,
+          avatar: req.file ? req.file.path : resto.avatar,
+        },
+      },
+      { new: true }
+    );
+
+    if (!resto) {
+      return res.status(404).json({ message: "Restaurant not found" });
+    }
+
+    res.json(resto);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error updating restaurant details" });
+  }
+};
+
 module.exports = {
+  updatedetailsResto,
+  isRestaurantOpen,
+  updateHours,
   addcomments,
   getcomments,
   deleteCategory,
