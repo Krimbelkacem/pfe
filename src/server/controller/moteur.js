@@ -9,24 +9,34 @@ const asyncHandler = require("express-async-handler");
 const handleSearch = asyncHandler(async (req, res) => {
   const keyword = req.query.keyword;
   try {
-    // Recherche des restaurants, items et catégories qui correspondent à la requête de recherche
+    ////////////////////////////////////////////////
     Resto.find(
       {
         $or: [
-          { name: { $regex: keyword, $options: "i" } }, // Recherche de restaurants
-          { "menu.categories.name": { $regex: keyword, $options: "i" } }, // Recherche de catégories
+          { name: { $regex: keyword, $options: "i" } },
+          { address: { $regex: keyword, $options: "i" } },
+          { "menu.name": { $regex: keyword, $options: "i" } },
+          { "menu.categories.name": { $regex: keyword, $options: "i" } },
+          { "menu.categories.items.name": { $regex: keyword, $options: "i" } },
           {
-            "menu.categories.items.name": { $regex: keyword, $options: "i" },
+            "menu.categories.items.description": {
+              $regex: keyword,
+              $options: "i",
+            },
           },
-          { description: { $regex: keyword, $options: "i" } }, // Case-insensitive search on the 'description' field
-          { "cuisines.name": { $regex: keyword, $options: "i" } }, // Search for cuisines by name
+          { description: { $regex: keyword, $options: "i" } },
+
+          { "cuisines.name": { $regex: keyword, $options: "i" } },
         ],
       },
       "_id name menu avatar cuisines  price_average address",
       (err, results) => {
         // Filtrer les résultats par type
-        const restoResults = results.filter((result) =>
-          result.name.toLowerCase().includes(keyword.toLowerCase())
+        const restoResults = results.filter(
+          (result) =>
+            result.name.toLowerCase().includes(keyword.toLowerCase()) ||
+            result.address.toLowerCase().includes(keyword.toLowerCase()) ||
+            result.description.toLowerCase().includes(keyword.toLowerCase())
         );
 
         const lowPriceResto = [];

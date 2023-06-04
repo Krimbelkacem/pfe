@@ -19,12 +19,19 @@ const userSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    verified: {
+      type: Boolean,
+      default: false,
+    },
+    verificationToken: {
+      type: String,
+    },
 
     email: {
       type: String,
       required: true,
       trim: true, //enlever les espace
-      unique: true,
+      // unique: true,
       lowercase: true,
       minLenght: 8,
     },

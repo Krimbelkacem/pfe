@@ -6,6 +6,7 @@ const cors = require("cors");
 const admin = require("firebase-admin");
 var cookieParser = require("cookie-parser");
 const fs = require("fs");
+const nodemailer = require("nodemailer");
 
 // Specify the directory path
 const directory = "./public";

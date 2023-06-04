@@ -8,6 +8,34 @@ const session = require("express-session");
 const { generateToken, decodeToken } = require("../config/generateToken");
 const asyncHandler = require("express-async-handler");
 
+const { google } = require("googleapis");
+const nodemailer = require("nodemailer");
+
+// Create a OAuth2 client
+const oAuth2Client = new google.auth.OAuth2(
+  "892646659673-n1js42ik7h7h1hne8a0psth1nj4r684l.apps.googleusercontent.com",
+  "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",
+  "http://localhost:5000/red"
+);
+
+// Set the refresh token (generated using the OAuth 2.0 Playground or other methods)
+oAuth2Client.setCredentials({
+  refresh_token: "YOUR_REFRESH_TOKEN",
+});
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    type: "OAuth2",
+    user: "YOUR_EMAIL_ADDRESS",
+    clientId:
+      "892646659673-n1js42ik7h7h1hne8a0psth1nj4r684l.apps.googleusercontent.com",
+    clientSecret: "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",
+    refreshToken: "YOUR_REFRESH_TOKEN",
+    accessToken: oAuth2Client.getAccessToken(),
+  },
+});
+
 const handleNewUser = async (req, res) => {
   const name = req.body.name;
   const passe = req.body.passe;
@@ -18,35 +46,80 @@ const handleNewUser = async (req, res) => {
   if (!passe || !email)
     return res
       .status(400)
-      .json({ message: "Username and password are required." }); //si sont vide
-
-  // check for duplicate usernames in the db
-  const duplicate = await User.findOne({ email: email }).exec(); // trouver exactement username
-  if (duplicate) return res.sendStatus(409); //Conflict
-
+      .json({ message: "Username and password are required." });
+  /*
+  const duplicate = await User.findOne({ email: email }).exec();
+  if (duplicate) return res.sendStatus(409);
+*/
   try {
-    //create and store the new user
+    const verificationToken = generateToken();
+
+    let result;
+
     if (file) {
-      const result = await User.create({
+      result = await User.create({
         username: name,
         password: passe,
         email: email,
         picture: file.filename,
+        verificationToken: verificationToken,
       });
     } else {
-      const result = await User.create({
+      result = await User.create({
         username: name,
         password: passe,
         email: email,
+        verificationToken: verificationToken,
       });
     }
-    console.log("user created");
+    console.log("User created");
 
     res.status(201).json({ success: `New user ${name} created!` });
+    const verificationLink = generateVerificationLink(verificationToken);
+
+    console.log("Sending verification email...");
+
+    await sendVerificationEmail(email, passe, verificationLink);
+
+    console.log("Verification email sent");
   } catch (err) {
+    console.error("Error creating user:", err);
     res.status(500).json({ message: err.message });
   }
 };
+
+const sendVerificationEmail = async (email, password, verificationLink) => {
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: "elmida605@gmail.com",
+      pass: "elmidakhlifa",
+    },
+    tls: {
+      rejectUnauthorized: false,
+    },
+  });
+
+  const mailOptions = {
+    from: "elmida605@gmail.com",
+    to: email,
+    subject: "Email Verification",
+    text: `Welcome to our platform!\n\nPlease click the following link to verify your email: ${verificationLink}`,
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Email sent:", info.response);
+  } catch (error) {
+    console.error("Error sending email:", error);
+  }
+};
+
+const generateVerificationLink = (verificationToken) => {
+  return `https://example.com/verify?token=${verificationToken}`;
+};
+
+///////////////////////////////////////////////////////
 
 async function authAdmin(req, res, next) {
   const email = req.body.email;

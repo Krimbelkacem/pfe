@@ -2,6 +2,7 @@ const { default: mongoose } = require("mongoose");
 
 const User = require("../db/Schema/User");
 const Resto = require("../db/Schema/Restaurant");
+const Reserve = require("../db/Schema/Reservation");
 const session = require("express-session");
 const generateToken = require("../config/generateToken");
 const asyncHandler = require("express-async-handler");
@@ -359,9 +360,10 @@ const deletePhone = async (req, res) => {
 
 // Add cuisine to a restaurant
 const addCuisine = async (req, res) => {
-  console.loge("adcuisines");
-  const { restoId, image, name } = req.body;
-
+  console.log("adcuisines");
+  const { name } = req.body;
+  const image = req.file.filename;
+  const restoId = req.query.idR;
   try {
     const resto = await Resto.findByIdAndUpdate(
       restoId,
@@ -735,8 +737,28 @@ const updatedetailsResto = async (req, res) => {
     res.status(500).json({ message: "Error updating restaurant details" });
   }
 };
+const deleteResto = async (req, res) => {
+  console.log("supression du restorant");
+  const restoId = req.query.idR;
 
+  try {
+    // Delete the restaurant from all other references
+    await User.updateMany({ $pull: { followers: restoId } });
+    await Reserve.updateMany({ $pull: { resto: restoId } });
+
+    // Delete the restaurant
+    await Resto.findByIdAndDelete(restoId);
+
+    res.status(200).json({ message: "Restaurant deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while deleting the restaurant" });
+  }
+};
 module.exports = {
+  deleteResto,
   updatedetailsResto,
   isRestaurantOpen,
   updateHours,

@@ -71,9 +71,11 @@ const RestoSchema = new mongoose.Schema({
       },
       startTime: {
         type: String,
+        default: "11:00:00 AM", // Default start time in format "12:00:00 AM"
       },
       endTime: {
         type: String,
+        default: "11:59:59 PM", // Default end time in format "11:59:59 PM"
       },
     },
   ],

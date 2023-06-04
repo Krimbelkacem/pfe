@@ -16,6 +16,7 @@ const {
   getAllUsers,
 } = require("../controller/userController");
 const {
+  deleteResto,
   isRestaurantOpen,
   updateHours,
   getcomments,
@@ -65,6 +66,7 @@ app.post("/upload", upload.single("image"), handlenewresto);
 app.get("/ProfilResto", handlegetresto);
 app.post("/searchResto", handlefindresto);
 app.post("/search", handleSearch);
+
 ////////////////////////////////////////
 
 app.post("/admin-page", authAdmin);
@@ -129,6 +131,8 @@ app.delete("/deleteitems", deleteitems);
 app.post("/updateHours", updateHours);
 
 app.get("/isRestaurantOpen", isRestaurantOpen);
+// DELETE /resto/:id
+app.delete("/deleteResto", deleteResto);
 
 /*
 app.post("/addResto", upload.single("avatar"), async (req, response) => {
