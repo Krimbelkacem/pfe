@@ -9,7 +9,7 @@ const asyncHandler = require("express-async-handler");
 const handleSearch = asyncHandler(async (req, res) => {
   const keyword = req.query.keyword;
   try {
-    ////////////////////////////////////////////////
+    // Recherche des restaurants, items et catégories qui correspondent à la requête de recherche
     Resto.find(
       {
         $or: [
@@ -35,8 +35,7 @@ const handleSearch = asyncHandler(async (req, res) => {
         const restoResults = results.filter(
           (result) =>
             result.name.toLowerCase().includes(keyword.toLowerCase()) ||
-            result.address.toLowerCase().includes(keyword.toLowerCase()) ||
-            result.description.toLowerCase().includes(keyword.toLowerCase())
+            result.address.toLowerCase().includes(keyword.toLowerCase())
         );
 
         const lowPriceResto = [];

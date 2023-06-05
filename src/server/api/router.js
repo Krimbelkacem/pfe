@@ -43,6 +43,8 @@ const {
   getMenuResto,
   getPhotoResto,
   updatedetailsResto,
+  getUserCommentsAndPublications,
+  getUserPhotos,
 } = require("../controller/restoController");
 const {
   handleaddmenu,
@@ -133,6 +135,8 @@ app.post("/updateHours", updateHours);
 app.get("/isRestaurantOpen", isRestaurantOpen);
 // DELETE /resto/:id
 app.delete("/deleteResto", deleteResto);
+app.post("/getUserCommentsAndPublications", getUserCommentsAndPublications);
+app.post("/getUserPhotos", getUserPhotos);
 
 /*
 app.post("/addResto", upload.single("avatar"), async (req, response) => {

@@ -545,54 +545,60 @@ const getPhotoResto = async (req, res) => {
 };
 
 //recupere le commentaire et les publication des utilisateur
-
+///////////////////////for admin
 async function getUserCommentsAndPublications(req, res) {
-  const { idUser } = req.params;
-
+  const idUser = req.query.id;
+  console.log("admin pub comments");
+  console.log(idUser);
   try {
-    // Retrieve user comments and publications from Resto model
-    const restaurants = await Resto.find({ "comments.user": idUser }).populate(
-      "owner",
-      "username"
-    );
+    // Retrieve user comments and photos from Resto model
+    const restaurants = await Resto.find({ "comments.user": idUser })
+      .populate("comments.user", "username")
+      .select("comments photos");
+
     const userComments = [];
-    const userPublications = [];
 
     restaurants.forEach((restaurant) => {
       restaurant.comments.forEach((comment) => {
-        if (comment.user.toString() === idUser) {
+        if (comment.user._id.toString() === idUser) {
           userComments.push({
-            restaurant: restaurant.name,
             comment: comment.comment,
             date: comment.date,
           });
         }
       });
-
-      restaurant.menu.categories.forEach((category) => {
-        category.items.forEach((item) => {
-          if (item.user.toString() === idUser) {
-            userPublications.push({
-              restaurant: restaurant.name,
-              item: item.name,
-              description: item.description,
-              price: item.price,
-            });
-          }
-        });
-      });
     });
 
     res.status(200).json({
       userComments,
-      userPublications,
     });
   } catch (error) {
     res
       .status(500)
-      .json({ error: "Failed to retrieve user comments and publications" });
+      .json({ error: "Failed to retrieve user comments and photos" });
   }
 }
+
+async function getUserPhotos(req, res) {
+  console.log("kkkkkkkkkkkkk");
+  const idUser = req.query.id;
+
+  try {
+    // Retrieve restaurants where the user is the owner
+    const restaurants = await Resto.find({ owner: idUser }).select("photos");
+
+    const userPhotos = [];
+
+    restaurants.forEach((restaurant) => {
+      userPhotos.push(...restaurant.photos);
+    });
+
+    res.status(200).json({ userPhotos });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to retrieve user photos" });
+  }
+}
+/////////////////////////////////////////////////////////////////////////////////////
 
 const getcomments = async (req, res) => {
   try {
@@ -758,6 +764,7 @@ const deleteResto = async (req, res) => {
   }
 };
 module.exports = {
+  getUserPhotos,
   deleteResto,
   updatedetailsResto,
   isRestaurantOpen,
