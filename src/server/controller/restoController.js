@@ -667,7 +667,7 @@ const updateHours = (req, res) => {
 };
 
 const isRestaurantOpen = async (req, res) => {
-  console.log("222kjhlifa negh");
+  console.log("check resto openning");
 
   try {
     const id = req.query.id;
@@ -678,9 +678,10 @@ const isRestaurantOpen = async (req, res) => {
     }
 
     const currentHour = new Date().getHours(); // Get the current hour (0-23)
-
+    const options = { timeZone: "Africa/Algiers" };
     const currentDay = new Date().toLocaleDateString("en-US", {
       weekday: "long",
+      timeZone: options.timeZone,
     });
 
     const openingHoursToday = resto.openingHours.find(

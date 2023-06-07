@@ -13,7 +13,7 @@ const userSchema = new Schema(
     picture: {
       type: "String",
 
-      default: "default.png",
+      default: "default.jpg",
     },
     isAdmin: {
       type: Boolean,

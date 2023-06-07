@@ -14,6 +14,7 @@ const {
   handledeleteteuser,
   authAdmin,
   getAllUsers,
+  handleValidateEmail,
 } = require("../controller/userController");
 const {
   deleteResto,
@@ -80,6 +81,7 @@ app.put("/rejectReservation", rejectReservation);
 app.post("/addfollower", follow);
 app.post("/unfollow", unfollow);
 app.post("/signup", upload.single("image"), handleNewUser);
+app.get("/confirmation", handleValidateEmail);
 app.post("/login", authUser);
 
 app.get("/profile", handlegetuser);

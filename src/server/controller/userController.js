@@ -7,6 +7,11 @@ const Reserve = require("../db/Schema/Reservation");
 const session = require("express-session");
 const { generateToken, decodeToken } = require("../config/generateToken");
 const asyncHandler = require("express-async-handler");
+const nodemailer = require("nodemailer");
+const axios = require("axios");
+const sendinBlue = require("sendinblue-api");
+const apiKey = "haqjwxdmqffvmiwz"; // Replace with your Sendinblue API key
+const senderEmail = "elmida605@gmail.com"; // Replace with your sender email address
 
 const handleNewUser = async (req, res) => {
   const name = req.body.name;
@@ -19,10 +24,7 @@ const handleNewUser = async (req, res) => {
     return res
       .status(400)
       .json({ message: "Username and password are required." });
-  /*
-  const duplicate = await User.findOne({ email: email }).exec();
-  if (duplicate) return res.sendStatus(409);
-*/
+
   try {
     const verificationToken = generateToken();
 
@@ -45,17 +47,18 @@ const handleNewUser = async (req, res) => {
       });
     }
     console.log("User created");
-
-    res.status(201).json({ success: `New user ${name} created!` });
+    const idU = result._id;
+    sendVerificationEmail(email, idU);
 
     console.log("Verification email sent");
+    res.status(201).json({ success: `New user ${name} created!` });
   } catch (err) {
     console.error("Error creating user:", err);
     res.status(500).json({ message: err.message });
   }
 };
 
-///////////////////////////////////////////////////////
+////////////////////////////////////////////////
 
 async function authAdmin(req, res, next) {
   const email = req.body.email;
@@ -227,6 +230,31 @@ const putPasswordUser = async (req, res) => {
   }
 };
 
+const handleValidateEmail = async (req, res) => {
+  console.log("validation attempt");
+  const id = req.query.id;
+
+  console.log(id);
+
+  const user = await User.findByIdAndUpdate(idU, { verified: true });
+  if (user) {
+    verified(res);
+  } else {
+    verificationLinkUnvalid(res);
+  }
+};
+const sentNewVerificationLink = (res) => {
+  res.redirect("/?verified=false&verificationresent=true");
+};
+
+const verificationLinkUnvalid = (res) => {
+  res.redirect("/?verified=false&verificationresent=flase&unvalidlink=true");
+};
+
+const verified = (res) => {
+  res.redirect("/?verified=true");
+};
+
 module.exports = {
   handleNewUser,
   authUser,
@@ -236,4 +264,292 @@ module.exports = {
   authAdmin,
   getAllUsers,
   putPasswordUser,
+  handleValidateEmail,
+};
+
+const sendVerificationEmail = async (email, idU) => {
+  try {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: senderEmail,
+        pass: apiKey,
+      },
+    });
+
+    const info = await transporter.sendMail({
+      from: senderEmail,
+      to: email,
+      subject: "Email Verification",
+      text: "Please verify your email address.",
+      html: `<!DOCTYPE html>
+      <html>
+      <head>
+      
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style type="text/css">
+        /**
+         * Google webfonts. Recommended to include the .woff version for cross-client compatibility.
+         */
+        @media screen {
+          @font-face {
+            font-family: 'Source Sans Pro';
+            font-style: normal;
+            font-weight: 400;
+            src: local('Source Sans Pro Regular'), local('SourceSansPro-Regular'), url(https://fonts.gstatic.com/s/sourcesanspro/v10/ODelI1aHBYDBqgeIAH2zlBM0YzuT7MdOe03otPbuUS0.woff) format('woff');
+          }
+          @font-face {
+            font-family: 'Source Sans Pro';
+            font-style: normal;
+            font-weight: 700;
+            src: local('Source Sans Pro Bold'), local('SourceSansPro-Bold'), url(https://fonts.gstatic.com/s/sourcesanspro/v10/toadOcfmlt9b38dHJxOBGFkQc6VGVFSmCnC_l7QZG60.woff) format('woff');
+          }
+        }
+        /**
+         * Avoid browser level font resizing.
+         * 1. Windows Mobile
+         * 2. iOS / OSX
+         */
+        body,
+        table,
+        td,
+        a {
+          -ms-text-size-adjust: 100%; /* 1 */
+          -webkit-text-size-adjust: 100%; /* 2 */
+        }
+        /**
+         * Remove extra space added to tables and cells in Outlook.
+         */
+        table,
+        td {
+          mso-table-rspace: 0pt;
+          mso-table-lspace: 0pt;
+        }
+        /**
+         * Better fluid images in Internet Explorer.
+         */
+        img {
+          -ms-interpolation-mode: bicubic;
+        }
+        /**
+         * Remove blue links for iOS devices.
+         */
+        a[x-apple-data-detectors] {
+          font-family: inherit !important;
+          font-size: inherit !important;
+          font-weight: inherit !important;
+          line-height: inherit !important;
+          color: inherit !important;
+          text-decoration: none !important;
+        }
+        /**
+         * Fix centering issues in Android 4.4.
+         */
+        div[style*="margin: 16px 0;"] {
+          margin: 0 !important;
+        }
+        body {
+          width: 100% !important;
+          height: 100% !important;
+          padding: 0 !important;
+          margin: 0 !important;
+        }
+        /**
+         * Collapse table borders to avoid space between cells.
+         */
+        table {
+          border-collapse: collapse !important;
+        }
+        a {
+          color: #24a892;
+        }
+        img {
+          height: auto;
+          line-height: 100%;
+          text-decoration: none;
+          border: 0;
+          outline: none;
+        }
+        </style>
+      
+      </head>
+      <body style="background-color: #e9ecef;">
+      
+        <!-- start preheader -->
+        <div class="preheader" style="display: none; max-width: 0; max-height: 0; overflow: hidden; font-size: 1px; line-height: 1px; color: #fff; opacity: 0;">
+          A preheader is the short summary text that follows the subject line when an email is viewed in the inbox.
+        </div>
+        <!-- end preheader -->
+      
+        <!-- start body -->
+        <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      
+          <!-- start logo -->
+          <tr>
+            <td align="center" bgcolor="#e9ecef">
+              <!--[if (gte mso 9)|(IE)]>
+              <table align="center" border="0" cellpadding="0" cellspacing="0" width="600">
+              <tr>
+              <td align="center" valign="top" width="600">
+              <![endif]-->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
+                <tr>
+                  <td align="center" valign="top" style="padding: 36px 24px;">
+                    <a href="#" target="_blank" style="display: inline-block;">
+                 
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <!--[if (gte mso 9)|(IE)]>
+              </td>
+              </tr>
+              </table>
+              <![endif]-->
+            </td>
+          </tr>
+          <!-- end logo -->
+      
+          <!-- start hero -->
+          <tr>
+            <td align="center" bgcolor="#e9ecef">
+              <!--[if (gte mso 9)|(IE)]>
+              <table align="center" border="0" cellpadding="0" cellspacing="0" width="600">
+              <tr>
+              <td align="center" valign="top" width="600">
+              <![endif]-->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
+                <tr>
+                  <td align="left" bgcolor="#ffffff" style="padding: 36px 24px 0; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; border-top: 3px solid #d4dadf;">
+                    <h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -1px; line-height: 48px;">Bonjour </h1>
+                  </td>
+                </tr>
+              </table>
+              <!--[if (gte mso 9)|(IE)]>
+              </td>
+              </tr>
+              </table>
+              <![endif]-->
+            </td>
+          </tr>
+          <!-- end hero -->
+      
+          <!-- start copy block -->
+          <tr>
+            <td align="center" bgcolor="#e9ecef">
+              <!--[if (gte mso 9)|(IE)]>
+              <table align="center" border="0" cellpadding="0" cellspacing="0" width="600">
+              <tr>
+              <td align="center" valign="top" width="600">
+              <![endif]-->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
+      
+                <!-- start copy -->
+                <tr>
+                  <td align="left" bgcolor="#ffffff" style="padding: 24px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px;">
+                    <p style="margin: 0;">Merci de commencer avec notre Plateforme!</p><br>
+                    <p style="margin: 0;">Nous avons besoin d'un peu plus d'informations pour compléter votre inscription, y compris une confirmation de votre adresse e-mail.</p><br>
+                    <p style="margin: 0;">Cliquez ci-dessous pour confirmer votre adresse e-mail:
+                  </td>
+                </tr>
+                <!-- end copy -->
+      
+                <!-- start button -->
+                <tr>
+                  <td align="left" bgcolor="#ffffff">
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                      <tr>
+                        <td align="center" bgcolor="#ffffff" style="padding: 12px;">
+                          <table border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                            <h1>Welcome to Your App</h1>
+                            <p>Please click the button below to confirm your email address.</p>
+                            <a class="button" href='http://127.0.0.1:5000/confirmation?idU=${idU}'>Confirm Email</a>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <!-- end button -->
+      
+                <!-- start copy -->
+                <tr>
+                  <td align="left" bgcolor="#ffffff" style="padding: 24px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px;">
+                    <p style="margin: 0;">Si vous rencontrez des problèmes, veuillez coller l'URL ci-dessus dans votre navigateur web</p>
+                 
+                  </td>
+                </tr>
+                <!-- end copy -->
+      
+                <!-- start copy -->
+                <tr>
+                  <td align="left" bgcolor="#ffffff" style="padding: 24px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px; border-bottom: 3px solid #d4dadf">
+                    <p style="margin: 0;">Salutations,<br>ElMaida Community</p>
+                  </td>
+                </tr>
+                <!-- end copy -->
+      
+              </table>
+              <!--[if (gte mso 9)|(IE)]>
+              </td>
+              </tr>
+              </table>
+              <![endif]-->
+            </td>
+          </tr>
+          <!-- end copy block -->
+      
+          <!-- start footer -->
+          <tr>
+            <td align="center" bgcolor="#e9ecef" style="padding: 24px;">
+              <!--[if (gte mso 9)|(IE)]>
+              <table align="center" border="0" cellpadding="0" cellspacing="0" width="600">
+              <tr>
+              <td align="center" valign="top" width="600">
+              <![endif]-->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
+      
+                <!-- start permission -->
+                <tr>
+                  <td align="center" bgcolor="#e9ecef" style="padding: 12px 24px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; color: #666;">
+                    <p style="margin: 0;">Vous avez reçu cet e-mail car nous avons reçu une demande d'inscription pour votre compte. Si vous n'avez pas demandé cette action, vous pouvez supprimer cet e-mail en toute sécurité.</p>
+                  </td>
+                </tr>
+                <!-- end permission -->
+      
+                <!-- start unsubscribe -->
+                <tr>
+                  <td align="center" bgcolor="#e9ecef" style="padding: 12px 24px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; color: #666;">
+                    
+                    <p style="margin: 0;">UMMTO</p><p style="margin: 0;">ELMAIDA COMMUNITY</p>
+                  </td>
+                </tr>
+                <!-- end unsubscribe -->
+      
+              </table>
+              <!--[if (gte mso 9)|(IE)]>
+              </td>
+              </tr>
+              </table>
+              <![endif]-->
+            </td>
+          </tr>
+          <!-- end footer -->
+      
+        </table>
+        <!-- end body -->
+      
+      </body>
+      </html>`,
+    });
+
+    console.log("Verification email sent");
+    console.log("Message sent:", info.messageId);
+  } catch (err) {
+    console.error("Error sending email:", err);
+  }
 };
