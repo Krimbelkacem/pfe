@@ -6,6 +6,8 @@ const Reserve = require("../db/Schema/Reservation");
 const session = require("express-session");
 const generateToken = require("../config/generateToken");
 const asyncHandler = require("express-async-handler");
+
+const moment = require("moment-timezone");
 const handlenewresto = asyncHandler(async function (req, res, next) {
   console.log("id:" + req.query.id);
   const userId = req.query.id.toString();
@@ -672,17 +674,32 @@ const isRestaurantOpen = async (req, res) => {
   try {
     const id = req.query.id;
     const resto = await Resto.findById(id);
+    //   const currentmoment = moment().tz("Europe/Paris").format("HH:mm:ss");
+    const currentmoment = moment().tz("Europe/Paris").format("HH");
+    console.log("Current hour in paris (AM/PM format): ", currentmoment);
+
+    const heureinalgeria = currentmoment - 1;
+    /*
+    const currentmoment = moment().tz("Europe/Paris").format("h A");
+    console.log("Current hour in GMT+1 (AM/PM format): ", currentmoment);
+
+    //const numbers = currentmoment.match(/\d+/g).map(Number);
+
+   const number = parseInt(currentmoment.match(/\d+/)[0], 10);
+    console.log(number, "numbers");*/
 
     if (!resto) {
       return res.status(404).json({ error: "Resto not found" });
     }
 
-    const currentHour = new Date().getHours(); // Get the current hour (0-23)
+    const currentHour = new Date().getHours();
+    console.log("currentHour", currentHour); // Get the current hour (0-23)
     const options = { timeZone: "Africa/Algiers" };
     const currentDay = new Date().toLocaleDateString("en-US", {
       weekday: "long",
       timeZone: options.timeZone,
     });
+    console.log(currentDay, "day in algeria");
 
     const openingHoursToday = resto.openingHours.find(
       (hours) => hours.day === currentDay
@@ -704,8 +721,8 @@ const isRestaurantOpen = async (req, res) => {
     console.log(currentHour, "currentime");
 
     if (
-      currentHour >= openingTime.getHours() &&
-      currentHour <= closingTime.getHours()
+      heureinalgeria >= openingTime.getHours() &&
+      heureinalgeria <= closingTime.getHours()
     ) {
       return res.json({ status: "Open" });
     } else {

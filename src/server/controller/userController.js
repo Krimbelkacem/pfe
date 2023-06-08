@@ -12,7 +12,7 @@ const axios = require("axios");
 const sendinBlue = require("sendinblue-api");
 const apiKey = "haqjwxdmqffvmiwz"; // Replace with your Sendinblue API key
 const senderEmail = "elmida605@gmail.com"; // Replace with your sender email address
-
+const path = require("path"); // Import the path module
 const handleNewUser = async (req, res) => {
   const name = req.body.name;
   const passe = req.body.passe;
@@ -231,16 +231,25 @@ const putPasswordUser = async (req, res) => {
 };
 
 const handleValidateEmail = async (req, res) => {
-  console.log("validation attempt");
-  const id = req.query.id;
+  const { id } = req.params;
 
-  console.log(id);
+  try {
+    // Find the user with the provided ID
+    const user = await User.findByIdAndUpdate(
+      id,
+      { verified: true },
+      { new: true }
+    );
 
-  const user = await User.findByIdAndUpdate(idU, { verified: true });
-  if (user) {
-    verified(res);
-  } else {
-    verificationLinkUnvalid(res);
+    if (!user) {
+      return res.status(400).json({ error: "Invalid user ID" });
+    }
+
+    // Send the confirmation.html file
+    return res.sendFile(path.join(__dirname, "public", "confirmation.html"));
+  } catch (error) {
+    console.error("Error confirming email:", error);
+    return res.status(500).json({ error: "Failed to confirm email" });
   }
 };
 const sentNewVerificationLink = (res) => {
@@ -466,7 +475,7 @@ const sendVerificationEmail = async (email, idU) => {
                             <tr>
                             <h1>Welcome to Your App</h1>
                             <p>Please click the button below to confirm your email address.</p>
-                            <a class="button" href='http://127.0.0.1:5000/confirmation?idU=${idU}'>Confirm Email</a>
+                            <a class="button" href='http://localhost:5000/confirmation/${idU}'>Confirm Email</a>
                             </tr>
                           </table>
                         </td>

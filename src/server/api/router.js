@@ -81,7 +81,7 @@ app.put("/rejectReservation", rejectReservation);
 app.post("/addfollower", follow);
 app.post("/unfollow", unfollow);
 app.post("/signup", upload.single("image"), handleNewUser);
-app.get("/confirmation", handleValidateEmail);
+app.get("/confirmation/:id", handleValidateEmail);
 app.post("/login", authUser);
 
 app.get("/profile", handlegetuser);
