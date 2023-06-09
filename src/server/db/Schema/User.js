@@ -23,6 +23,10 @@ const userSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    archived: {
+      type: Boolean,
+      default: false,
+    },
     verificationToken: {
       type: String,
     },

@@ -8,34 +8,72 @@ const asyncHandler = require("express-async-handler");
 
 const handleSearch = asyncHandler(async (req, res) => {
   const keyword = req.query.keyword;
+  console.log(keyword);
+  // Function to extract numbers from the keyword
+  const extractNumbers = (str) => {
+    const regex = /\d+/g;
+    const matches = str.match(regex);
+    return matches ? matches.map(Number) : [];
+  };
+
+  const characters = keyword.match(/[a-zA-Z]+/g);
+  console.log("char:", characters ? characters[0] : null);
+
+  const KeywordText = characters ? characters[0] : keyword;
+  console.log("KeywordText:", KeywordText);
+
+  //////////////works butnot perfect
+  /* const characters = keyword.match(/[a-zA-Z]+/g);
+  console.log("char:", characters[0]);
+  const KeywordText = characters[0];*/
+
+  ////////////////////////////////
+  // ['ABC', 'DEF']
+
+  // const characters = [...keyword];
+
+  // Perform a search using regular expressions
+  /* const regexPattern = /[a-zA-Z]/g;
+  const matchedCharacters = characters.filter((char) =>
+    char.match(regexPattern)
+  );
+*/
+  // Print the matched characters
+  // console.log("matchedCharacters", matchedCharacters);
+  //////////////////////////////////////////////////////////////
   try {
     // Recherche des restaurants, items et catégories qui correspondent à la requête de recherche
     Resto.find(
       {
         $or: [
-          { name: { $regex: keyword, $options: "i" } },
-          { address: { $regex: keyword, $options: "i" } },
-          { "menu.name": { $regex: keyword, $options: "i" } },
-          { "menu.categories.name": { $regex: keyword, $options: "i" } },
-          { "menu.categories.items.name": { $regex: keyword, $options: "i" } },
+          { name: { $regex: KeywordText, $options: "i" } },
+          { address: { $regex: KeywordText, $options: "i" } },
+          { "menu.name": { $regex: KeywordText, $options: "i" } },
+          { "menu.categories.name": { $regex: KeywordText, $options: "i" } },
           {
-            "menu.categories.items.description": {
-              $regex: keyword,
+            "menu.categories.items.name": {
+              $regex: KeywordText,
               $options: "i",
             },
           },
-          { description: { $regex: keyword, $options: "i" } },
+          {
+            "menu.categories.items.description": {
+              $regex: KeywordText,
+              $options: "i",
+            },
+          },
+          { description: { $regex: KeywordText, $options: "i" } },
 
-          { "cuisines.name": { $regex: keyword, $options: "i" } },
+          { "cuisines.name": { $regex: KeywordText, $options: "i" } },
         ],
       },
-      "_id name menu avatar cuisines  price_average address",
-      (err, results) => {
+      "_id name menu avatar cuisines  price_average address description",
+      async (err, results) => {
         // Filtrer les résultats par type
         const restoResults = results.filter(
           (result) =>
-            result.name.toLowerCase().includes(keyword.toLowerCase()) ||
-            result.address.toLowerCase().includes(keyword.toLowerCase())
+            result.name.toLowerCase().includes(KeywordText.toLowerCase()) ||
+            result.address.toLowerCase().includes(KeywordText.toLowerCase())
         );
 
         const lowPriceResto = [];
@@ -57,7 +95,7 @@ const handleSearch = asyncHandler(async (req, res) => {
         /*
         const categoryResults = results.reduce((categories, result) => {
           const matchingCategories = result.menu.categories.filter((category) =>
-            category.name.toLowerCase().includes(keyword.toLowerCase())
+            category.name.toLowerCase().includes(KeywordText.toLowerCase())
           );
           return categories.concat(
             matchingCategories.map((category) => category.name)
@@ -66,7 +104,7 @@ const handleSearch = asyncHandler(async (req, res) => {
 
         const categoryResults = results.reduce((categories, result) => {
           const matchingCategories = result.menu.categories.filter((category) =>
-            category.name.toLowerCase().includes(keyword.toLowerCase())
+            category.name.toLowerCase().includes(KeywordText.toLowerCase())
           );
           const categoriesWithRestoInfo = matchingCategories.map(
             (category) => ({
@@ -85,7 +123,7 @@ const handleSearch = asyncHandler(async (req, res) => {
           const matchingItems = result.menu.categories.reduce(
             (items, category) => {
               const matchingCategoryItems = category.items.filter((item) =>
-                item.name.toLowerCase().includes(keyword.toLowerCase())
+                item.name.toLowerCase().includes(KeywordText.toLowerCase())
               );
               return items.concat(
                 matchingCategoryItems.map((item) => ({
@@ -109,7 +147,7 @@ const handleSearch = asyncHandler(async (req, res) => {
         const matchingItems = result.menu.categories.reduce(
           (items, category) => {
             const matchingCategoryItems = category.items.filter((item) =>
-              item.name.toLowerCase().includes(keyword.toLowerCase())
+              item.name.toLowerCase().includes(KeywordText.toLowerCase())
             );
             return items.concat(matchingCategoryItems);
           },
@@ -121,7 +159,7 @@ const handleSearch = asyncHandler(async (req, res) => {
 
         const cuisineResults = results.reduce((cuisines, result) => {
           const matchingCuisines = result.cuisines.filter((cuisine) =>
-            cuisine.name.toLowerCase().includes(keyword.toLowerCase())
+            cuisine.name.toLowerCase().includes(KeywordText.toLowerCase())
           );
           return cuisines.concat(
             matchingCuisines.map((cuisine) => ({
@@ -137,7 +175,64 @@ const handleSearch = asyncHandler(async (req, res) => {
         console.log(itemResults);
         console.log(categoryResults);
         console.log(cuisineResults);
-        res.send({
+
+        //////////////////////////////////////////////////////////
+
+        const numericValues = extractNumbers(KeywordText);
+        if (numericValues.length > 0) {
+          const numericResults = await Resto.find(
+            { "menu.categories.items.price": { $in: numericValues } },
+            "_id name menu avatar cuisines price_average address"
+          );
+
+          const foundItems = [];
+          numericResults.forEach((result) => {
+            result.menu.categories.forEach((category) => {
+              category.items.forEach((item) => {
+                if (numericValues.includes(item.price)) {
+                  foundItems.push({
+                    itemName: item.name,
+                    itemId: item._id,
+                    itemPrice: item.price,
+                    itemDescription: item.description,
+                    restaurantName: result.name,
+                    restaurantPhoto: result.avatar,
+                    restaurantId: result._id,
+                  });
+                }
+              });
+            });
+          });
+
+          res.send({
+            itemResults: itemResults,
+            restoResults: restoResults,
+            categoryResults: categoryResults,
+            cuisineResults: cuisineResults,
+            lowPriceResto: lowPriceResto,
+            mediumPriceResto: mediumPriceResto,
+            highPriceResto: highPriceResto,
+            numericResults: foundItems,
+          });
+
+          console.log("numericfoundItems", foundItems);
+        } else {
+          res.send({
+            itemResults: itemResults,
+            restoResults: restoResults,
+            categoryResults: categoryResults,
+            cuisineResults: cuisineResults,
+            lowPriceResto: lowPriceResto,
+            mediumPriceResto: mediumPriceResto,
+            highPriceResto: highPriceResto,
+          });
+        }
+      }
+    );
+
+    //////////////////////////////////////////////////////////////////////
+
+    /*  res.send({
           itemResults: itemResults,
           restoResults: restoResults,
           categoryResults: categoryResults,
@@ -148,7 +243,7 @@ const handleSearch = asyncHandler(async (req, res) => {
           highPriceResto: highPriceResto,
         });
       }
-    );
+    );*/
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Internal server error" });
@@ -162,7 +257,7 @@ const handleSearch = asyncHandler(async (req, res) => {
           res.send(
             itemResults[0].menu.categories.flatMap((category) =>
               category.items.filter((item) =>
-                item.name.toLowerCase().includes(keyword.toLowerCase())
+                item.name.toLowerCase().includes(KeywordText.toLowerCase())
               )
             )
           );

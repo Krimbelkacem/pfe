@@ -18,7 +18,9 @@ const handleNewUser = async (req, res) => {
   const passe = req.body.passe;
   const email = req.body.email;
   const file = req.file;
+  const API_URL = req.query.API_URL;
   console.log(email);
+  console.log(API_URL);
 
   if (!passe || !email)
     return res
@@ -48,7 +50,7 @@ const handleNewUser = async (req, res) => {
     }
     console.log("User created");
     const idU = result._id;
-    sendVerificationEmail(email, idU);
+    sendVerificationEmail(email, idU, API_URL);
 
     console.log("Verification email sent");
     res.status(201).json({ success: `New user ${name} created!` });
@@ -77,15 +79,24 @@ async function authAdmin(req, res, next) {
   }
 }
 const authUser = asyncHandler(async (req, res) => {
-  console.log("auth user          000000000000000000000");
+  console.log("authentification user ");
   const email = req.body.email;
   const password = req.body.password;
-  console.log("auth user");
+
   if (!password || !email)
-    res.status(400).json({ message: "Username and password are required." });
+    res.status(500).json({ message: "Username and password are required." });
   const user = await User.findOne({ email });
 
   if (user && (await user.matchPassword(password))) {
+    console.log(user.verified);
+    if (user.verified === false) {
+      return res.status(402).json("veulliez confirmer votre email ");
+    }
+    if (user.archived === true) {
+      return res
+        .status(403)
+        .json("Desole, vous ne pouvez plus accedez a votre compte ");
+    }
     const token = generateToken(user._id);
     const idU = user._id;
     console.log("ok");
@@ -171,23 +182,23 @@ const handleupdateuser = asyncHandler(async (req, res) => {
 });
 
 const handledeleteteuser = asyncHandler(async (req, res) => {
-  console.log("id:" + req.query.id);
-  const userId = req.query.id;
-  try {
-    const deleteUser = await User.findOneAndDelete({ _id: userId });
-    Resto.deleteMany({ _id: { $in: deleteUser.Restos } }, (err, result) => {
-      if (err) {
-        console.error(err);
-      } else {
-        console.log(`Deleted ${result.deletedCount} documents`);
-      }
-    });
+  console.log("id:" + req.query.idU);
 
-    console.log(`User ${userId} delete successfully: ${deleteUser}`);
-    res.json({ message: "Profile delete successfully" });
-  } catch (err) {
-    res.status(500).json({ message: "Server error" });
-    console.error(`Error updating user ${userId}: ${err}`);
+  try {
+    const id = req.query.idU; // Assuming you pass the user ID as a route parameter
+
+    // Find the user by ID and update the 'archived' field to true
+    const user = await User.findByIdAndUpdate(id, { archived: true });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ message: "User archived successfully" });
+    console.log("archived");
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error archiving user" });
   }
 });
 
@@ -276,7 +287,7 @@ module.exports = {
   handleValidateEmail,
 };
 
-const sendVerificationEmail = async (email, idU) => {
+const sendVerificationEmail = async (email, idU, API_URL) => {
   try {
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -475,7 +486,7 @@ const sendVerificationEmail = async (email, idU) => {
                             <tr>
                             <h1>Welcome to Your App</h1>
                             <p>Please click the button below to confirm your email address.</p>
-                            <a class="button" href='http://localhost:5000/confirmation/${idU}'>Confirm Email</a>
+                            <a class="button" href='${API_URL}/confirmation/${idU}'>Confirm Email</a>
                             </tr>
                           </table>
                         </td>

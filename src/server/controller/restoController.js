@@ -736,31 +736,31 @@ const isRestaurantOpen = async (req, res) => {
 const updatedetailsResto = async (req, res) => {
   try {
     const { id } = req.query; // Assuming you pass the restaurant ID as a query parameter
+    console.log(id, "id resto");
 
-    // Check if the restaurant exists
-    const resto = await Resto.findByIdAndUpdate(
-      id,
-      {
-        $set: {
-          name: req.body.name || resto.name,
-          phone: req.body.phone || resto.phone,
-          description: req.body.description || resto.description,
-          avatar: req.file ? req.file.path : resto.avatar,
-        },
-      },
-      { new: true }
-    );
+    // Retrieve the restaurant details
+    const resto = await Resto.findById(id);
 
     if (!resto) {
       return res.status(404).json({ message: "Restaurant not found" });
     }
 
-    res.json(resto);
+    // Update the restaurant details
+    resto.name = req.body.name || resto.name;
+    resto.phone = req.body.phone || resto.phone;
+    resto.description = req.body.description || resto.description;
+    resto.avatar = req.file ? req.file.path : resto.avatar;
+
+    // Save the updated restaurant
+    const updatedResto = await resto.save();
+
+    res.json(updatedResto);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error updating restaurant details" });
   }
 };
+
 const deleteResto = async (req, res) => {
   console.log("supression du restorant");
   const restoId = req.query.idR;
