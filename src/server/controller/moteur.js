@@ -16,7 +16,8 @@ const handleSearch = asyncHandler(async (req, res) => {
     return matches ? matches.map(Number) : [];
   };
 
-  const characters = keyword.match(/[a-zA-Z]+/g);
+  // const characters = keyword.match(/[a-zA-Z]+/g);
+  const characters = keyword.match(/[a-zA-ZÉéèêëÀâäÆæÇçÎïôœÙûüŸÿ]+/g);
   console.log("char:", characters ? characters[0] : null);
 
   const KeywordText = characters ? characters[0] : keyword;
@@ -178,7 +179,7 @@ const handleSearch = asyncHandler(async (req, res) => {
 
         //////////////////////////////////////////////////////////
 
-        const numericValues = extractNumbers(KeywordText);
+        const numericValues = extractNumbers(keyword);
         if (numericValues.length > 0) {
           const numericResults = await Resto.find(
             { "menu.categories.items.price": { $in: numericValues } },
