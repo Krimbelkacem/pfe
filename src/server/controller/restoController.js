@@ -270,6 +270,9 @@ async function topRestos(req, res) {
       $project: {
         _id: 1,
         name: 1,
+        description: 1,
+        price_average: 1,
+        address: 1,
         avatar: 1,
         followerCount: { $size: "$followers" },
       },
@@ -288,6 +291,27 @@ async function topRestos(req, res) {
 
     res.json(topRestos);
   });
+}
+async function homePub(req, res) {
+  // Find the top 10 restaurants with the most followers
+  try {
+    const homePub = await Resto.aggregate([
+      { $unwind: "$photos" }, // Unwind the photos array
+      { $sample: { size: 10 } }, // Randomly sample 10 documents
+    ]);
+
+    const formattedData = homePub.map((item) => ({
+      name: item.name,
+      avatar: item.avatar,
+      photo: item.photos,
+      address: item.address,
+      restoId: item._id,
+    }));
+
+    res.json(formattedData);
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
 }
 
 const recentsRestos = asyncHandler(async (req, res) => {
@@ -801,6 +825,7 @@ module.exports = {
   recentsRestos,
   getAllRestos,
   topRestos,
+  homePub,
   unfollow,
   follow,
   handlefindresto,

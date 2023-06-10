@@ -34,6 +34,7 @@ const {
   randomCuisines,
   recentsRestos,
   topRestos,
+  homePub,
   unfollow,
   follow,
   handlefindresto,
@@ -109,6 +110,7 @@ app.post("/deleteDescription ", deleteDescription);
 
 app.get("/top-restaurants", topRestos);
 app.get("/recents-restaurants", recentsRestos);
+app.get("/homePub", homePub);
 //recuperer les utilisateurs pour l'admin
 app.get("/admin_users", getAllUsers);
 
