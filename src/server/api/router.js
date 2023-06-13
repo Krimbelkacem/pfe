@@ -5,7 +5,7 @@ const upload = require("../middleware/upload");
 const jwt = require("jsonwebtoken");
 const secretKey = "khlifa";
 const handleSearch = require("../controller/moteur");
-
+const homeLogique = require("../controller/homeLogique");
 const {
   handleNewUser,
   handlegetuser,
@@ -70,7 +70,7 @@ app.post("/upload", upload.single("image"), handlenewresto);
 app.get("/ProfilResto", handlegetresto);
 app.post("/searchResto", handlefindresto);
 app.post("/search", handleSearch);
-
+app.post("/homeLogique", homeLogique);
 ////////////////////////////////////////
 
 app.post("/admin-page", authAdmin);

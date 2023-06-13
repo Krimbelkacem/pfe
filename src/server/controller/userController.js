@@ -206,7 +206,7 @@ const getAllUsers = async (req, res) => {
   console.log("admin users");
   // const users = await User.find().select();
 
-  const users = await User.find({ isAdmin: { $ne: true } });
+  const users = await User.find({ isAdmin: { $ne: true }, archived: false });
   res.status(200).json(users);
 };
 
