@@ -17,6 +17,8 @@ const {
   handleValidateEmail,
 } = require("../controller/userController");
 const {
+  getalladminrestos,
+  confirm_resto,
   deleteResto,
   isRestaurantOpen,
   updateHours,
@@ -141,7 +143,8 @@ app.get("/isRestaurantOpen", isRestaurantOpen);
 app.delete("/deleteResto", deleteResto);
 app.post("/getUserCommentsAndPublications", getUserCommentsAndPublications);
 app.post("/getUserPhotos", getUserPhotos);
-
+app.post("/confirm_resto", confirm_resto);
+app.get("/getalladminrestos", getalladminrestos);
 /*
 app.post("/addResto", upload.single("avatar"), async (req, response) => {
   const resto = new Resto(req.body);

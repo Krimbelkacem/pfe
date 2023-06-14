@@ -15,6 +15,12 @@ const RestoSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  isConfirmed: {
+    type: Boolean,
+    default: false,
+  },
+  reference: { type: String, required: true },
+
   avatar: {
     type: String,
     default: "default.png",

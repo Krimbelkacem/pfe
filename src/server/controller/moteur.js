@@ -123,21 +123,24 @@ const handleSearch = asyncHandler(async (req, res) => {
         const itemResults = results.reduce((items, result) => {
           const matchingItems = result.menu.categories.reduce(
             (items, category) => {
-              const matchingCategoryItems = category.items.filter((item) =>
-                item.name.toLowerCase().includes(KeywordText.toLowerCase())
-              );
-              return items.concat(
-                matchingCategoryItems.map((item) => ({
-                  itemId: item._id,
-                  itemImage: item.image,
-                  itemPrice: item.price,
-                  itemDescription: item.description,
-                  itemName: item.name,
-                  restaurantId: result._id,
-                  restoAvatar: result.avatar,
-                  restoName: result.name,
-                }))
-              );
+              if (category.name.toLowerCase() === "plats") {
+                const matchingCategoryItems = category.items.filter((item) =>
+                  item.name.toLowerCase().includes(KeywordText.toLowerCase())
+                );
+                return items.concat(
+                  matchingCategoryItems.map((item) => ({
+                    itemId: item._id,
+                    itemImage: item.image,
+                    itemPrice: item.price,
+                    itemDescription: item.description,
+                    itemName: item.name,
+                    restaurantId: result._id,
+                    restoAvatar: result.avatar,
+                    restoName: result.name,
+                  }))
+                );
+              }
+              return items;
             },
             []
           );

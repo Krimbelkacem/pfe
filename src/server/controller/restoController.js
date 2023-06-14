@@ -20,7 +20,7 @@ const handlenewresto = asyncHandler(async function (req, res, next) {
   }
 
   const resto = new Resto();
-  console.log(req.body.longitude);
+  console.log(req.body.Reference + "reference");
   console.log(req.body.latitude);
   resto.name = req.body.name;
   resto.address = req.body.address;
@@ -28,6 +28,7 @@ const handlenewresto = asyncHandler(async function (req, res, next) {
   resto.owner = userId;
   resto.latitude = parseFloat(req.body.latitude);
   resto.longitude = parseFloat(req.body.longitude);
+  resto.reference = req.body.RestoReference;
 
   try {
     await resto.save();
@@ -126,9 +127,7 @@ const handlegetresto = asyncHandler(async (req, response) => {
     .exec();
 
   try {
-    console.log(
-      restos.price_average + "00000000000000000000000000000000000000000"
-    );
+    console.log(restos.price_average + "price overage");
     response.json(restos);
   } catch (error) {
     response.status(500).send(error);
@@ -263,9 +262,9 @@ const unfollow = asyncHandler(async (req, res) => {
   }
 });
 async function topRestos(req, res) {
-  // Find the top 10 restaurants with the most followers
+  // Find the top 10 confirmed restaurants with the most followers
   const topRestosQuery = Resto.aggregate([
-    { $match: { followers: { $exists: true } } }, // Match restaurants that have the 'followers' field
+    { $match: { followers: { $exists: true }, isConfirmed: true } }, // Match confirmed restaurants that have the 'followers' field
     {
       $project: {
         _id: 1,
@@ -292,10 +291,11 @@ async function topRestos(req, res) {
     res.json(topRestos);
   });
 }
+
 async function homePub(req, res) {
-  // Find the top 10 restaurants with the most followers
   try {
     const homePub = await Resto.aggregate([
+      { $match: { isConfirmed: true } }, // Match only confirmed restaurants
       { $unwind: "$photos" }, // Unwind the photos array
       { $sample: { size: 10 } }, // Randomly sample 10 documents
     ]);
@@ -313,10 +313,9 @@ async function homePub(req, res) {
     res.status(500).json({ message: "Internal server error" });
   }
 }
-
 const recentsRestos = asyncHandler(async (req, res) => {
   try {
-    const recentRestaurants = await Resto.find()
+    const recentRestaurants = await Resto.find({ isConfirmed: true })
       .sort({ _id: -1 }) // Sort by descending order of _id (assumes _id is an auto-generated timestamp)
       .limit(10); // Limit the result to 10 restaurants
 
@@ -325,9 +324,11 @@ const recentsRestos = asyncHandler(async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
 const randomCuisines = asyncHandler(async (req, res) => {
   try {
     const cuisines = await Resto.aggregate([
+      { $match: { isConfirmed: true } }, // Match only confirmed restaurants
       { $unwind: "$cuisines" }, // Unwind the cuisines array
       { $sample: { size: 10 } }, // Randomly sample 10 documents
     ]);
@@ -570,6 +571,40 @@ const getPhotoResto = async (req, res) => {
   }
 };
 
+const getalladminrestos = async (req, res) => {
+  try {
+    // Retrieve all restaurants
+    const restos = await Resto.find();
+
+    return res.status(200).json(restos);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+const confirm_resto = async (req, res) => {
+  const idResto = req.query.idResto;
+  console.log(idResto, "idResto");
+
+  try {
+    // Find the restaurant by ID and update the "isConfirmed" field
+    const resto = await Resto.findByIdAndUpdate(
+      idResto,
+      { isConfirmed: true },
+      { new: true }
+    );
+
+    if (!resto) {
+      return res.status(404).json({ message: "Restaurant not found" });
+    }
+
+    return res.status(200).json({ message: "Restaurant confirmed", resto });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 //recupere le commentaire et les publication des utilisateur
 ///////////////////////for admin
 async function getUserCommentsAndPublications(req, res) {
@@ -585,11 +620,13 @@ async function getUserCommentsAndPublications(req, res) {
     const userComments = [];
 
     restaurants.forEach((restaurant) => {
-      restaurant.comments.forEach((comment) => {
-        if (comment.user._id.toString() === idUser) {
+      restaurant.comments.forEach((com) => {
+        console.log(com.user._id);
+
+        if (com.user._id.toString() === idUser) {
           userComments.push({
-            comment: comment.comment,
-            date: comment.date,
+            comment: com.comment,
+            date: com.date,
           });
         }
       });
@@ -806,6 +843,8 @@ const deleteResto = async (req, res) => {
   }
 };
 module.exports = {
+  getalladminrestos,
+  confirm_resto,
   getUserPhotos,
   deleteResto,
   updatedetailsResto,

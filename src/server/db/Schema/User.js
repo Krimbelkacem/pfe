@@ -46,7 +46,6 @@ const userSchema = new Schema(
     Restos: [{ type: mongoose.SchemaTypes.ObjectID, ref: "Resto" }],
     followings: [{ type: mongoose.SchemaTypes.ObjectID, ref: "Resto" }],
     reservations: [{ type: mongoose.SchemaTypes.ObjectID, ref: "Reserve" }],
-    archive: { type: Boolean, default: false },
   },
   { timestamps: true } //date of creation and date of update
 );
