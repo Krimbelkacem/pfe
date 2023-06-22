@@ -117,13 +117,17 @@ const handlegetuser = asyncHandler(async (req, res) => {
 
     // Find the user with the decoded ID
     const user = await User.findById(decodedToken.id)
-      .populate("Restos")
+      .populate({
+        path: "Restos",
+        match: { isConfirmed: true }, // Add the match condition for verified restaurants
+      })
       .populate("followings")
       .populate({
         path: "reservations",
         populate: {
           path: "Resto",
           select: "name avatar",
+          match: { isConfirmed: true },
         },
       })
       .exec();

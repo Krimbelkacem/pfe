@@ -20,7 +20,7 @@ const handlenewresto = asyncHandler(async function (req, res, next) {
   }
 
   const resto = new Resto();
-  console.log(req.body.longitude);
+  console.log(req.body.Reference + "reference");
   console.log(req.body.latitude);
   resto.name = req.body.name;
   resto.address = req.body.address;
@@ -28,6 +28,7 @@ const handlenewresto = asyncHandler(async function (req, res, next) {
   resto.owner = userId;
   resto.latitude = parseFloat(req.body.latitude);
   resto.longitude = parseFloat(req.body.longitude);
+  resto.reference = req.body.RestoReference;
 
   try {
     await resto.save();
@@ -126,9 +127,7 @@ const handlegetresto = asyncHandler(async (req, response) => {
     .exec();
 
   try {
-    console.log(
-      restos.price_average + "00000000000000000000000000000000000000000"
-    );
+    console.log(restos.price_average + "price overage");
     response.json(restos);
   } catch (error) {
     response.status(500).send(error);
@@ -136,29 +135,34 @@ const handlegetresto = asyncHandler(async (req, response) => {
 });
 
 const handledeleteteresto = asyncHandler(async (req, res) => {
-  console.log("id:" + req.query.id);
+  console.log("id:" + req.query.idR);
   const restoId = req.query.idR;
   const userId = req.query.idU;
+
   try {
-    const deleteresto = await Resto.findOneAndDelete({ _id: restoId });
-    if (deleteresto) {
-      User.updateOne(
-        { _id: userId },
-        { $pull: { Restos: { _id: restoId } } },
-        (err) => {
-          if (err) {
-            console.log(err);
-          } else {
-            console.log("Message removed successfully");
-          }
-        }
-      );
-    }
-    console.log(`resto ${restoId} delete successfully: ${deleteresto}`);
-    res.json({ message: "Profile delete successfully" });
-  } catch (err) {
-    res.status(500).json({ message: "Server error" });
-    console.error(`Error updating resto ${restoId}: ${err}`);
+    // Remove the resto from Resto collection
+    await Resto.deleteOne({ _id: restoId });
+
+    // Remove resto reference from User collection's Restos array
+    await User.updateMany({ Restos: restoId }, { $pull: { Restos: restoId } });
+
+    // Remove resto reference from User collection's followings array
+    await User.updateMany(
+      { followings: restoId },
+      { $pull: { followings: restoId } }
+    );
+
+    // Remove resto reference from Reserve collection
+    await Reserve.updateMany(
+      { Resto: restoId },
+      { $unset: { Resto: restoId } }
+    );
+
+    res.status(200).json({ message: "Restaurant deleted successfully." });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "An error occurred while deleting the restaurant." });
   }
 });
 
@@ -217,9 +221,9 @@ const follow = asyncHandler(async (req, res) => {
 });
 const unfollow = asyncHandler(async (req, res) => {
   const idU = req.query.idU;
-  const idR = req.query.idR;
-  console.log(idU);
-  console.log(idR);
+  const idR = req.query.idR.trim();
+  console.log("idUser", idU);
+  console.log("idResto", idR);
   try {
     // Find the restaurant by ID
     const restaurant = await Resto.findById(idR);
@@ -263,9 +267,9 @@ const unfollow = asyncHandler(async (req, res) => {
   }
 });
 async function topRestos(req, res) {
-  // Find the top 10 restaurants with the most followers
+  // Find the top 10 confirmed restaurants with the most followers
   const topRestosQuery = Resto.aggregate([
-    { $match: { followers: { $exists: true } } }, // Match restaurants that have the 'followers' field
+    { $match: { followers: { $exists: true }, isConfirmed: true } }, // Match confirmed restaurants that have the 'followers' field
     {
       $project: {
         _id: 1,
@@ -292,10 +296,11 @@ async function topRestos(req, res) {
     res.json(topRestos);
   });
 }
+
 async function homePub(req, res) {
-  // Find the top 10 restaurants with the most followers
   try {
     const homePub = await Resto.aggregate([
+      { $match: { isConfirmed: true } }, // Match only confirmed restaurants
       { $unwind: "$photos" }, // Unwind the photos array
       { $sample: { size: 10 } }, // Randomly sample 10 documents
     ]);
@@ -313,10 +318,9 @@ async function homePub(req, res) {
     res.status(500).json({ message: "Internal server error" });
   }
 }
-
 const recentsRestos = asyncHandler(async (req, res) => {
   try {
-    const recentRestaurants = await Resto.find()
+    const recentRestaurants = await Resto.find({ isConfirmed: true })
       .sort({ _id: -1 }) // Sort by descending order of _id (assumes _id is an auto-generated timestamp)
       .limit(10); // Limit the result to 10 restaurants
 
@@ -325,14 +329,25 @@ const recentsRestos = asyncHandler(async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
 const randomCuisines = asyncHandler(async (req, res) => {
   try {
     const cuisines = await Resto.aggregate([
+      { $match: { isConfirmed: true } }, // Match only confirmed restaurants
       { $unwind: "$cuisines" }, // Unwind the cuisines array
       { $sample: { size: 10 } }, // Randomly sample 10 documents
     ]);
 
-    res.json(cuisines.map((item) => item.cuisines));
+    const cuisineRestaurants = cuisines.map((item) => ({
+      cuisine: item.cuisines,
+      restoName: item.name,
+      restoAvatar: item.avatar,
+      restoId: item._id,
+    }));
+
+    res.json(cuisineRestaurants);
+
+    // res.json(cuisines.map((item) => item.cuisines));
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
   }
@@ -570,6 +585,40 @@ const getPhotoResto = async (req, res) => {
   }
 };
 
+const getalladminrestos = async (req, res) => {
+  try {
+    // Retrieve all restaurants
+    const restos = await Resto.find().populate("owner", "email");
+
+    return res.status(200).json(restos);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+const confirm_resto = async (req, res) => {
+  const idResto = req.query.idResto;
+  console.log(idResto, "idResto");
+
+  try {
+    // Find the restaurant by ID and update the "isConfirmed" field
+    const resto = await Resto.findByIdAndUpdate(
+      idResto,
+      { isConfirmed: true },
+      { new: true }
+    );
+
+    if (!resto) {
+      return res.status(404).json({ message: "Restaurant not found" });
+    }
+
+    return res.status(200).json({ message: "Restaurant confirmed", resto });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 //recupere le commentaire et les publication des utilisateur
 ///////////////////////for admin
 async function getUserCommentsAndPublications(req, res) {
@@ -585,11 +634,13 @@ async function getUserCommentsAndPublications(req, res) {
     const userComments = [];
 
     restaurants.forEach((restaurant) => {
-      restaurant.comments.forEach((comment) => {
-        if (comment.user._id.toString() === idUser) {
+      restaurant.comments.forEach((com) => {
+        console.log(com.user._id);
+
+        if (com.user._id.toString() === idUser) {
           userComments.push({
-            comment: comment.comment,
-            date: comment.date,
+            comment: com.comment,
+            date: com.date,
           });
         }
       });
@@ -748,9 +799,22 @@ const isRestaurantOpen = async (req, res) => {
       heureinalgeria >= openingTime.getHours() &&
       heureinalgeria <= closingTime.getHours()
     ) {
+      /*{
       return res.json({ status: "Open" });
     } else {
       return res.json({ status: "Closed" });
+    }*/
+      const closingMoment = moment(closingTime).format("h:mm A");
+      return res.json({
+        status: "Open",
+        closingTime: openingHoursToday.endTime,
+      });
+    } else {
+      const openingMoment = moment(openingTime).format("h:mm A");
+      return res.json({
+        status: "Closed",
+        openingTime: openingHoursToday.startTime,
+      });
     }
   } catch (error) {
     console.error("Error retrieving opening hours:", error);
@@ -806,6 +870,8 @@ const deleteResto = async (req, res) => {
   }
 };
 module.exports = {
+  getalladminrestos,
+  confirm_resto,
   getUserPhotos,
   deleteResto,
   updatedetailsResto,

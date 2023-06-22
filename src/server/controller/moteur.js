@@ -46,26 +46,32 @@ const handleSearch = asyncHandler(async (req, res) => {
     // Recherche des restaurants, items et catégories qui correspondent à la requête de recherche
     Resto.find(
       {
-        $or: [
-          { name: { $regex: KeywordText, $options: "i" } },
-          { address: { $regex: KeywordText, $options: "i" } },
-          { "menu.name": { $regex: KeywordText, $options: "i" } },
-          { "menu.categories.name": { $regex: KeywordText, $options: "i" } },
+        $and: [
           {
-            "menu.categories.items.name": {
-              $regex: KeywordText,
-              $options: "i",
-            },
+            $or: [
+              { name: { $regex: KeywordText, $options: "i" } },
+              { address: { $regex: KeywordText, $options: "i" } },
+              { "menu.name": { $regex: KeywordText, $options: "i" } },
+              {
+                "menu.categories.name": { $regex: KeywordText, $options: "i" },
+              },
+              {
+                "menu.categories.items.name": {
+                  $regex: KeywordText,
+                  $options: "i",
+                },
+              },
+              {
+                "menu.categories.items.description": {
+                  $regex: KeywordText,
+                  $options: "i",
+                },
+              },
+              { description: { $regex: KeywordText, $options: "i" } },
+              { "cuisines.name": { $regex: KeywordText, $options: "i" } },
+            ],
           },
-          {
-            "menu.categories.items.description": {
-              $regex: KeywordText,
-              $options: "i",
-            },
-          },
-          { description: { $regex: KeywordText, $options: "i" } },
-
-          { "cuisines.name": { $regex: KeywordText, $options: "i" } },
+          { isConfirmed: true }, // Filter out non-confirmed restaurants
         ],
       },
       "_id name menu avatar cuisines  price_average address description",
@@ -80,17 +86,23 @@ const handleSearch = asyncHandler(async (req, res) => {
         const lowPriceResto = [];
         const mediumPriceResto = [];
         const highPriceResto = [];
+        const suphighPriceResto = [];
 
         restoResults.forEach((result) => {
-          if (result.price_average >= 0 && result.price_average <= 100) {
+          if (result.price_average >= 0 && result.price_average < 100) {
             lowPriceResto.push(result);
           } else if (
-            result.price_average > 100 &&
-            result.price_average <= 1000
+            result.price_average >= 100 &&
+            result.price_average < 1000
           ) {
             mediumPriceResto.push(result);
-          } else if (result.price_average > 1000) {
+          } else if (
+            result.price_average >= 1000 &&
+            result.price_average < 10000
+          ) {
             highPriceResto.push(result);
+          } else if (result.price_average >= 10000) {
+            suphighPriceResto.push(result);
           }
         });
         /*
@@ -123,21 +135,24 @@ const handleSearch = asyncHandler(async (req, res) => {
         const itemResults = results.reduce((items, result) => {
           const matchingItems = result.menu.categories.reduce(
             (items, category) => {
-              const matchingCategoryItems = category.items.filter((item) =>
-                item.name.toLowerCase().includes(KeywordText.toLowerCase())
-              );
-              return items.concat(
-                matchingCategoryItems.map((item) => ({
-                  itemId: item._id,
-                  itemImage: item.image,
-                  itemPrice: item.price,
-                  itemDescription: item.description,
-                  itemName: item.name,
-                  restaurantId: result._id,
-                  restoAvatar: result.avatar,
-                  restoName: result.name,
-                }))
-              );
+              if (category.name.toLowerCase() === "plats") {
+                const matchingCategoryItems = category.items.filter((item) =>
+                  item.name.toLowerCase().includes(KeywordText.toLowerCase())
+                );
+                return items.concat(
+                  matchingCategoryItems.map((item) => ({
+                    itemId: item._id,
+                    itemImage: item.image,
+                    itemPrice: item.price,
+                    itemDescription: item.description,
+                    itemName: item.name,
+                    restaurantId: result._id,
+                    restoAvatar: result.avatar,
+                    restoName: result.name,
+                  }))
+                );
+              }
+              return items;
             },
             []
           );
@@ -179,7 +194,7 @@ const handleSearch = asyncHandler(async (req, res) => {
 
         //////////////////////////////////////////////////////////
 
-        const numericValues = extractNumbers(keyword);
+        /* const numericValues = extractNumbers(keyword);
         if (numericValues.length > 0) {
           const numericResults = await Resto.find(
             { "menu.categories.items.price": { $in: numericValues } },
@@ -205,6 +220,40 @@ const handleSearch = asyncHandler(async (req, res) => {
             });
           });
 
+          */
+        const numericValues = extractNumbers(keyword);
+        if (numericValues.length > 0) {
+          const numericResults = await Resto.find(
+            {
+              "menu.categories.name": { $regex: /plats/i },
+              "menu.categories.items.price": { $in: numericValues },
+            },
+            "_id name menu.avatar menu.categories"
+          );
+
+          const foundItems = [];
+          numericResults.forEach((result) => {
+            const platsCategory = result.menu.categories.find(
+              (category) => category.name.toLowerCase() === "plats"
+            );
+            if (platsCategory) {
+              const matchingItems = platsCategory.items.filter((item) =>
+                numericValues.includes(item.price)
+              );
+              matchingItems.forEach((item) => {
+                foundItems.push({
+                  itemName: item.name,
+                  itemId: item._id,
+                  itemPrice: item.price,
+                  itemDescription: item.description,
+                  restaurantName: result.name,
+                  restaurantPhoto: result.menu.avatar,
+                  restaurantId: result._id,
+                });
+              });
+            }
+          });
+
           res.send({
             itemResults: itemResults,
             restoResults: restoResults,
@@ -213,6 +262,7 @@ const handleSearch = asyncHandler(async (req, res) => {
             lowPriceResto: lowPriceResto,
             mediumPriceResto: mediumPriceResto,
             highPriceResto: highPriceResto,
+            suphighPriceResto: suphighPriceResto,
             numericResults: foundItems,
           });
 
@@ -226,6 +276,7 @@ const handleSearch = asyncHandler(async (req, res) => {
             lowPriceResto: lowPriceResto,
             mediumPriceResto: mediumPriceResto,
             highPriceResto: highPriceResto,
+            suphighPriceResto: suphighPriceResto,
           });
         }
       }

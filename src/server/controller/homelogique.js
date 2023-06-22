@@ -5,52 +5,56 @@ const Resto = require("../db/Schema/Restaurant");
 const session = require("express-session");
 const generateToken = require("../config/generateToken");
 const asyncHandler = require("express-async-handler");
-
-// Méthode du contrôleur pour récupérer les restaurants en fonction de l'utilisateur
 const homeLogique = async (req, res) => {
   try {
-    const userId = req.query.iduser; // Récupérer l'ID de l'utilisateur connecté depuis la requête
+    const userId = req.query.iduser; // Retrieve the ID of the logged-in user from the request
 
     if (!userId) {
-      // Si l'utilisateur n'est pas connecté
+      // If the user is not logged in
       const randomRestaurants = await Resto.aggregate([
+        { $match: { isConfirmed: true } }, // Add the condition to filter confirmed restaurants
         { $sample: { size: 5 } },
       ]);
       return res.json(randomRestaurants);
     }
 
-    const user = await User.findById(userId).populate("followings"); // Récupérer les informations de l'utilisateur connecté et ses restaurants abonnés
+    const user = await User.findById(userId).populate("followings"); // Retrieve information of the logged-in user and their followed restaurants
 
     let restaurants = [];
 
     if (user.followings.length < 5) {
-      // Si l'utilisateur est abonné à moins de 5 restaurants
-      restaurants = user.followings; // Récupérer les restaurants auxquels l'utilisateur est abonné
+      // If the user is following less than 5 restaurants
+      restaurants = user.followings; // Retrieve the restaurants the user is following
 
-      // Compléter la liste jusqu'à 5 restaurants aléatoires
+      // Complete the list with random restaurants until it reaches 5
       const remainingRestaurantsCount = 5 - user.followings.length;
       const additionalRestaurants = await Resto.aggregate([
-        { $match: { _id: { $nin: user.followings } } }, // Exclure les restaurants auxquels l'utilisateur est déjà abonné
-        { $sample: { size: remainingRestaurantsCount } }, // Récupérer les restaurants aléatoires restants
+        { $match: { _id: { $nin: user.followings }, isConfirmed: true } }, // Add the condition to filter confirmed restaurants
+        { $sample: { size: remainingRestaurantsCount } }, // Retrieve the remaining random restaurants
       ]);
 
       restaurants = restaurants.concat(additionalRestaurants);
     } else {
-      // Si l'utilisateur est abonné à 5 restaurants ou plus, récupérer uniquement 5 restaurants parmi ceux auxquels il est abonné
-      const randomIndexes = getRandomIndexes(user.followings.length, 5); // Obtenir 5 index aléatoires
-      restaurants = randomIndexes.map((index) => user.followings[index]); // Récupérer les restaurants correspondants aux index aléatoires
+      // If the user is following 5 or more restaurants, retrieve only 5 random confirmed restaurants from their followed list
+      const confirmedRestaurants = user.followings.filter(
+        (resto) => resto.isConfirmed
+      ); // Filter the followed restaurants to only keep the confirmed ones
+
+      const randomIndexes = getRandomIndexes(confirmedRestaurants.length, 5); // Get 5 random indexes
+      restaurants = randomIndexes.map((index) => confirmedRestaurants[index]); // Retrieve the corresponding restaurants based on the random indexes
     }
-    console.log("la récupération des restaurants.", restaurants.length);
+
+    console.log("Restaurant retrieval:", restaurants.length);
     res.json(restaurants);
   } catch (error) {
     console.error(error);
     res.status(500).json({
-      error: "Une erreur est survenue lors de la récupération des restaurants.",
+      error: "An error occurred while retrieving restaurants.",
     });
   }
 };
 
-// Fonction pour obtenir des index aléatoires
+// Function to get random indexes
 function getRandomIndexes(length, count) {
   const indexes = [];
 
@@ -64,4 +68,5 @@ function getRandomIndexes(length, count) {
 
   return indexes;
 }
+
 module.exports = homeLogique;

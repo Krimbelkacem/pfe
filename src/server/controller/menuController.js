@@ -171,8 +171,37 @@ const addmenuitem = async (req, res) => {
       { $push: { "menu.categories.$.items": newItem } },
       { new: true }
     );
+    const menuCategory = updatedResto.menu.categories.find(
+      (category) => category._id.toString() === idC
+    );
 
-    // Calculate price average
+    console.log("category plat touver");
+    if (menuCategory.name.toLowerCase() === "plats") {
+      const platsCategory = updatedResto.menu.categories.find(
+        (category) => category.name.toLowerCase() === "plats"
+      );
+      console.log("ok");
+      const platsItems = platsCategory.items;
+      console.log(platsItems);
+      const totalItems = platsItems.length;
+      console.log("nbr plats", totalItems);
+      const totalPrice = platsItems.reduce(
+        (total, item) => total + item.price,
+        0
+      );
+      console.log("totalPrice", totalPrice);
+      const priceAverage = totalPrice / totalItems;
+      console.log("priceAverage", priceAverage);
+
+      updatedResto.price_average = priceAverage.toFixed(2);
+      console.log("updatedResto.price_average", updatedResto.price_average);
+
+      await Resto.updateOne(
+        { _id: id },
+        { $set: { price_average: updatedResto.price_average } }
+      );
+    }
+    /*
     const menuItems = updatedResto.menu.categories.find(
       (category) => category._id.toString() === idC
     ).items;
@@ -183,7 +212,7 @@ const addmenuitem = async (req, res) => {
     updatedResto.price_average = priceAverage.toFixed(2); // Update price_average field
     await updatedResto.save(); // Save the updated restaurant
 
-    console.log("ok");
+    console.log("ok");*/
     return res
       .status(201)
       .json({ message: "Item added to menu", item: newItem });

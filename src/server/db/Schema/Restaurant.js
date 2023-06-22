@@ -15,6 +15,12 @@ const RestoSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  isConfirmed: {
+    type: Boolean,
+    default: false,
+  },
+  reference: { type: String, required: true },
+
   avatar: {
     type: String,
     default: "default.png",
@@ -92,6 +98,24 @@ const RestoSchema = new mongoose.Schema({
       },
     },
   ],
+});
+
+// Add a pre-save middleware to add the default "plats" category
+RestoSchema.pre("save", function (next) {
+  // Check if "plats" category already exists
+  const platsCategoryExists = this.menu.categories.some(
+    (category) => category.name === "plats"
+  );
+
+  if (!platsCategoryExists) {
+    // Add the default "plats" category
+    this.menu.categories.unshift({
+      name: "plats",
+      items: [],
+    });
+  }
+
+  next();
 });
 
 const Resto = mongoose.model("Resto", RestoSchema);
