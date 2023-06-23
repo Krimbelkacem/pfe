@@ -588,11 +588,7 @@ const getPhotoResto = async (req, res) => {
 const getalladminrestos = async (req, res) => {
   try {
     // Retrieve all restaurants
-<<<<<<< HEAD
     const restos = await Resto.find().populate("owner", "email");
-=======
-    const restos = await Resto.find();
->>>>>>> a59bad6a47cc05dbeedba98f47a661121fdbd6ca
 
     return res.status(200).json(restos);
   } catch (error) {
