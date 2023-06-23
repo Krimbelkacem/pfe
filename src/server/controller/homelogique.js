@@ -35,6 +35,7 @@ const homeLogique = async (req, res) => {
 
       restaurants = restaurants.concat(additionalRestaurants);
     } else {
+<<<<<<< HEAD
       // If the user is following 5 or more restaurants, retrieve only 5 random confirmed restaurants from their followed list
       const confirmedRestaurants = user.followings.filter(
         (resto) => resto.isConfirmed
@@ -42,6 +43,11 @@ const homeLogique = async (req, res) => {
 
       const randomIndexes = getRandomIndexes(confirmedRestaurants.length, 5); // Get 5 random indexes
       restaurants = randomIndexes.map((index) => confirmedRestaurants[index]); // Retrieve the corresponding restaurants based on the random indexes
+=======
+      // If the user is following 5 or more restaurants, retrieve only 5 random restaurants from their followed list
+      const randomIndexes = getRandomIndexes(user.followings.length, 5); // Get 5 random indexes
+      restaurants = randomIndexes.map((index) => user.followings[index]); // Retrieve the corresponding restaurants based on the random indexes
+>>>>>>> a59bad6a47cc05dbeedba98f47a661121fdbd6ca
     }
 
     console.log("Restaurant retrieval:", restaurants.length);
@@ -68,6 +74,7 @@ function getRandomIndexes(length, count) {
 
   return indexes;
 }
+<<<<<<< HEAD
 /////////////////////////////////////////////////////////////
 
 const getUserSubscribedRestaurantsPhotos = async (req, res) => {
@@ -131,3 +138,7 @@ const getUserSubscribedRestaurantsPhotos = async (req, res) => {
 };
 
 module.exports = { homeLogique, getUserSubscribedRestaurantsPhotos };
+=======
+
+module.exports = homeLogique;
+>>>>>>> a59bad6a47cc05dbeedba98f47a661121fdbd6ca
