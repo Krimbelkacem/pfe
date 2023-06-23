@@ -1,6 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const router = require("./src/Server/api/router.js");
+const router = require("./src/server/api/router.js");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const admin = require("firebase-admin");

@@ -68,5 +68,66 @@ function getRandomIndexes(length, count) {
 
   return indexes;
 }
+/////////////////////////////////////////////////////////////
 
-module.exports = homeLogique;
+const getUserSubscribedRestaurantsPhotos = async (req, res) => {
+  try {
+    const userId = req.query.idU;
+
+    if (!userId) {
+      return res.json([]);
+    }
+
+    const user = await User.findById(userId)
+      .populate({
+        path: "followings",
+        select: "name avatar photos address",
+      })
+      .lean();
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const subscribedRestaurants = user.followings;
+    let restaurantPhotos = [];
+
+    subscribedRestaurants.forEach((restaurant) => {
+      if (restaurant.photos && restaurant.photos.length > 0) {
+        restaurant.photos.forEach((photo) => {
+          restaurantPhotos.push({
+            restoId: restaurant._id,
+            name: restaurant.name,
+            avatar: restaurant.avatar,
+            photo: photo,
+            address: restaurant.address,
+          });
+        });
+      }
+    });
+    function shuffleArray(array) {
+      const shuffledArray = [...array];
+      for (let i = shuffledArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledArray[i], shuffledArray[j]] = [
+          shuffledArray[j],
+          shuffledArray[i],
+        ];
+      }
+      return shuffledArray;
+    }
+
+    if (restaurantPhotos.length > 5) {
+      restaurantPhotos = shuffleArray(restaurantPhotos).slice(0, 5);
+    }
+
+    return res.json(restaurantPhotos);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: "An error occurred while retrieving subscribed restaurant photos",
+    });
+  }
+};
+
+module.exports = { homeLogique, getUserSubscribedRestaurantsPhotos };

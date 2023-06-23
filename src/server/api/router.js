@@ -5,7 +5,14 @@ const upload = require("../middleware/upload");
 const jwt = require("jsonwebtoken");
 const secretKey = "khlifa";
 const handleSearch = require("../controller/moteur");
-const homeLogique = require("../controller/homeLogique");
+const {
+  addmessage,
+  getAllMessages,
+} = require("../controller/messgesController");
+const {
+  homeLogique,
+  getUserSubscribedRestaurantsPhotos,
+} = require("../controller/homeLogique");
 const {
   handleNewUser,
   handlegetuser,
@@ -74,8 +81,15 @@ app.get("/ProfilResto", handlegetresto);
 app.post("/searchResto", handlefindresto);
 app.post("/search", handleSearch);
 app.post("/homeLogique", homeLogique);
+app.post(
+  "/getUserSubscribedRestaurantsPhotos",
+  getUserSubscribedRestaurantsPhotos
+);
+
 ////////////////////////////////////////
 
+app.post("/getAllMessages", getAllMessages);
+app.post("/addmessage", addmessage);
 app.post("/admin-page", authAdmin);
 //////////////////////
 app.post("/newReservation", newReservation);
